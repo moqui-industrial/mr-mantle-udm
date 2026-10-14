@@ -45,7 +45,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="11" fieldPath="person:firstName"/>
         <fields fieldSeqId="12" fieldPath="person:middleName"/>
         <fields fieldSeqId="13" fieldPath="person:lastName"/>
-        <fields fieldSeqId="14" fieldPath="(&quot;${organizationName?:''}${firstName?:''}${middleName ? ' ' + middleName : ''}${lastName ? ' ' + lastName : ''}&quot;)"
+        <fields fieldSeqId="14" fieldPath="(&quot;${organizationName||''}${firstName||''}${middleName ? ' ' + middleName : ''}${lastName ? ' ' + lastName : ''}&quot;)"
                 fieldNameAlias="combinedName" fieldType="text" sortable="Y"/>
 
         <fields fieldSeqId="15" fieldPath="roles:roleTypeId"/>
@@ -226,7 +226,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <!-- ========== Wiki Page ========== -->
     <dataDocuments dataDocumentId="MantleWikiPage" indexName="mantle" documentName="Wiki Page"
-            primaryEntityName="moqui.resource.wiki.WikiPage" documentTitle="${wikiSpaceId}/${pagePath?:''}"
+            primaryEntityName="moqui.resource.wiki.WikiPage" documentTitle="${wikiSpaceId}/${pagePath||''}"
             manualDataServiceName="org.moqui.impl.WikiServices.get#WikiPageManualDocumentData">
         <!-- NOTE: service purpose is to get wiki page contents from the file (resource) -->
         <fields fieldSeqId="01" fieldPath="wikiPageId"/>
