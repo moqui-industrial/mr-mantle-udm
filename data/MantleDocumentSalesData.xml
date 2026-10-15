@@ -59,13 +59,13 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="55" fieldPath="orderHeader:statusLogs:changedByUserId" fieldNameAlias="statusChangedByUserId"/>
 
         <!-- get most recent approved and completed dates (sort reverse) -->
-        <fields fieldSeqId="61" fieldPath="(statusLogs?.sort({a,b-&gt;b.statusChangedDate&lt;=&gt;a.statusChangedDate})?.find({it.newStatusId=='OrderApproved'})?.statusChangedDate)"
+        <fields fieldSeqId="61" fieldPath="(statusLogs?.slice().sort((a, b) => Number(b.statusChangedDate) - Number(a.statusChangedDate)).find((it) => it.newStatusId == 'OrderApproved')?.statusChangedDate)"
                 fieldNameAlias="approvedDate" fieldType="date"/>
-        <fields fieldSeqId="62" fieldPath="(statusLogs?.sort({a,b-&gt;b.statusChangedDate&lt;=&gt;a.statusChangedDate})?.find({it.newStatusId=='OrderCompleted'})?.statusChangedDate)"
+        <fields fieldSeqId="62" fieldPath="(statusLogs?.slice().sort((a, b) => Number(b.statusChangedDate) - Number(a.statusChangedDate)).find((it) => it.newStatusId == 'OrderCompleted')?.statusChangedDate)"
                 fieldNameAlias="completedDate" fieldType="date"/>
-        <fields fieldSeqId="65" fieldPath="(approvedDate&amp;&amp;placedDate?(approvedDate.time-placedDate.time)/(60*60*1000):null)"
+        <fields fieldSeqId="65" fieldPath="(approvedDate &amp;&amp; placedDate ? (Number(approvedDate) - Number(placedDate)) / (60*60*1000) : null)"
                 fieldNameAlias="approvedHours" fieldType="double"/>
-        <fields fieldSeqId="66" fieldPath="(completedDate&amp;&amp;approvedDate?(completedDate.time-approvedDate.time)/(60*60*1000):null)"
+        <fields fieldSeqId="66" fieldPath="(completedDate &amp;&amp; approvedDate ? (Number(completedDate) - Number(approvedDate)) / (60*60*1000) : null)"
                 fieldNameAlias="completedHours" fieldType="double"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="vendorRoleTypeId" fieldValue="OrgInternal"/>
@@ -86,12 +86,12 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="10" fieldPath="unitListPrice"/>
         <fields fieldSeqId="11" fieldPath="requiredByDate"/>
         <fields fieldSeqId="12" fieldPath="isPromo"/>
-        <fields fieldSeqId="13" fieldPath="((orderQuantity ?: 1.0) * (unitAmount ?: 0.0))" fieldNameAlias="itemSaleTotal" fieldType="double"/>
-        <fields fieldSeqId="14" fieldPath="(issuances ? issuances.sum({ (it.acquireCost ?: 0.0) * it.issuedQuantity }) : null)"
+        <fields fieldSeqId="13" fieldPath="((toNumber(orderQuantity) || 1) * (toNumber(unitAmount) || 0))" fieldNameAlias="itemSaleTotal" fieldType="double"/>
+        <fields fieldSeqId="14" fieldPath="(issuances?.length ? issuances.reduce((sum, it) => sum + (toNumber(it.acquireCost) || 0) * toNumber(it.issuedQuantity), 0) : null)"
                 fieldNameAlias="itemCostTotal" fieldType="double"/>
-        <fields fieldSeqId="15" fieldPath="(issuances ? ((orderQuantity ?: 1.0) * (unitAmount ?: 0.0)) - issuances.sum({ (it.acquireCost ?: 0.0) * it.issuedQuantity }) : null)"
+        <fields fieldSeqId="15" fieldPath="(issuances?.length ? ((toNumber(orderQuantity) || 1) * (toNumber(unitAmount) || 0)) - issuances.reduce((sum, it) => sum + (toNumber(it.acquireCost) || 0) * toNumber(it.issuedQuantity), 0) : null)"
                 fieldNameAlias="itemMarginTotal" fieldType="double"/>
-        <fields fieldSeqId="16" fieldPath="(issuances &amp;&amp; unitAmount ? (((orderQuantity ?: 1.0) * unitAmount) - issuances.sum({ (it.acquireCost ?: 0.0) * it.issuedQuantity })) / ((orderQuantity ?: 1.0) * unitAmount) : null)"
+        <fields fieldSeqId="16" fieldPath="(issuances?.length &amp;&amp; toNumber(unitAmount) ? (((toNumber(orderQuantity) || 1) * toNumber(unitAmount)) - issuances.reduce((sum, it) => sum + (toNumber(it.acquireCost) || 0) * toNumber(it.issuedQuantity), 0)) / ((toNumber(orderQuantity) || 1) * toNumber(unitAmount)) : null)"
                 fieldNameAlias="itemMarginPercent" fieldType="double"/>
 
         <fields fieldSeqId="21" fieldPath="part:statusId" fieldNameAlias="partStatusId"/>
@@ -119,12 +119,12 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="52" fieldPath="issuances:quantity" fieldNameAlias="issuedQuantity"/>
         <fields fieldSeqId="53" fieldPath="issuances:asset:acquireCost"/>
         <fields fieldSeqId="54" fieldPath="issuances:asset:lotId"/>
-        <fields fieldSeqId="55" fieldPath="issuances:(issuedQuantity * (unitAmount ?: 0.0))" fieldNameAlias="issuedSaleTotal" fieldType="double"/>
-        <fields fieldSeqId="56" fieldPath="issuances:(acquireCost ? issuedQuantity * acquireCost : null)" fieldNameAlias="issuedCostTotal" fieldType="double"/>
-        <fields fieldSeqId="57" fieldPath="issuances:(acquireCost ? (unitAmount ?: 0.0) - acquireCost : null)" fieldNameAlias="issuedMargin" fieldType="double"/>
-        <fields fieldSeqId="58" fieldPath="issuances:(acquireCost &amp;&amp; unitAmount ? (unitAmount - acquireCost) / unitAmount : null)"
+        <fields fieldSeqId="55" fieldPath="issuances:(toNumber(issuedQuantity) * (toNumber(unitAmount) || 0))" fieldNameAlias="issuedSaleTotal" fieldType="double"/>
+        <fields fieldSeqId="56" fieldPath="issuances:(toNumber(acquireCost) ? toNumber(issuedQuantity) * toNumber(acquireCost) : null)" fieldNameAlias="issuedCostTotal" fieldType="double"/>
+        <fields fieldSeqId="57" fieldPath="issuances:(toNumber(acquireCost) ? (toNumber(unitAmount) || 0) - toNumber(acquireCost) : null)" fieldNameAlias="issuedMargin" fieldType="double"/>
+        <fields fieldSeqId="58" fieldPath="issuances:(toNumber(acquireCost) &amp;&amp; toNumber(unitAmount) ? (toNumber(unitAmount) - toNumber(acquireCost)) / toNumber(unitAmount) : null)"
                 fieldNameAlias="issuedMarginPercent" fieldType="float"/>
-        <fields fieldSeqId="59" fieldPath="issuances:(acquireCost ? (issuedQuantity * (unitAmount ?: 0.0)) - (issuedQuantity * acquireCost) : null)"
+        <fields fieldSeqId="59" fieldPath="issuances:(toNumber(acquireCost) ? (toNumber(issuedQuantity) * (toNumber(unitAmount) || 0)) - (toNumber(issuedQuantity) * toNumber(acquireCost)) : null)"
                 fieldNameAlias="issuedMarginTotal" fieldType="double"/>
 
         <fields fieldSeqId="61" fieldPath="product:pseudoId"/>
@@ -146,7 +146,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="91" fieldPath="part:customerClasses:fromDate" fieldNameAlias="classFromDate"/>
         <fields fieldSeqId="92" fieldPath="part:customerClasses:thruDate" fieldNameAlias="classThruDate"/>
         <fields fieldSeqId="93" fieldPath="part:customerClasses:classification:classificationTypeEnumId"/>
-        <fields fieldSeqId="94" fieldPath="((org.moqui.util.CollectionUtilities.filterMapListByDate(customerClasses?.findAll(),'classFromDate','classThruDate',null)?.find()?.partyClassificationId)?:'CustConsumer')"
+        <fields fieldSeqId="94" fieldPath="((customerClasses || []).find((it) => (!it.classFromDate || Number(it.classFromDate) &lt;= Date.now()) &amp;&amp; (!it.classThruDate || Number(it.classThruDate) > Date.now()))?.partyClassificationId || 'CustConsumer')"
                 fieldNameAlias="customerClassId" fieldType="keyword"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="vendorRoleTypeId" fieldValue="OrgInternal"/>
@@ -175,13 +175,13 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="23" fieldPath="paymentApplications:appliedDate"/>
         <fields fieldSeqId="24" fieldPath="paymentApplications:payment:effectiveDate"/>
         <fields fieldSeqId="28" fieldNameAlias="prePaymentsTotal" fieldType="double"
-                fieldPath="(paymentApplications.findAll({invoiceDate&amp;&amp;it.effectiveDate&amp;&amp;(invoiceDate-it.effectiveDate)&gt;=0})*.amountApplied.sum())"/>
+                fieldPath="((paymentApplications || []).filter((it) => invoiceDate &amp;&amp; it.effectiveDate &amp;&amp; Number(invoiceDate) - Number(it.effectiveDate) >= 0).reduce((sum, it) => sum + (toNumber(it.amountApplied) || 0), 0))"/>
 
         <fields fieldSeqId="31" fieldPath="toClasses:partyClassificationId"/>
         <fields fieldSeqId="32" fieldPath="toClasses:fromDate" fieldNameAlias="classFromDate"/>
         <fields fieldSeqId="33" fieldPath="toClasses:thruDate" fieldNameAlias="classThruDate"/>
         <fields fieldSeqId="34" fieldPath="toClasses:classification:classificationTypeEnumId"/>
-        <fields fieldSeqId="35" fieldPath="((org.moqui.util.CollectionUtilities.filterMapListByDate(toClasses?.findAll(),'classFromDate','classThruDate',null)?.find()?.partyClassificationId)?:'CustConsumer')"
+        <fields fieldSeqId="35" fieldPath="((toClasses || []).find((it) => (!it.classFromDate || Number(it.classFromDate) &lt;= Date.now()) &amp;&amp; (!it.classThruDate || Number(it.classThruDate) > Date.now()))?.partyClassificationId || 'CustConsumer')"
                 fieldNameAlias="customerClassId" fieldType="keyword"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="fromRoleTypeId" fieldValue="OrgInternal"/>
@@ -197,13 +197,13 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="06" fieldPath="quantity"/>
         <fields fieldSeqId="07" fieldPath="amount"/>
 
-        <fields fieldSeqId="11" fieldPath="((quantity ?: 1.0) * (amount ?: 0.0))" fieldNameAlias="itemSaleTotal" fieldType="double"/>
+        <fields fieldSeqId="11" fieldPath="((toNumber(quantity) || 1) * (toNumber(amount) || 0))" fieldNameAlias="itemSaleTotal" fieldType="double"/>
 
-        <fields fieldSeqId="14" fieldPath="(issuances ? issuances.sum({ (it.acquireCost ?: 0.0) * it.issuedQuantity }) : null)"
+        <fields fieldSeqId="14" fieldPath="(issuances?.length ? issuances.reduce((sum, it) => sum + (toNumber(it.acquireCost) || 0) * toNumber(it.issuedQuantity), 0) : null)"
                 fieldNameAlias="itemCostTotal" fieldType="double"/>
-        <fields fieldSeqId="15" fieldPath="(issuances ? ((quantity ?: 1.0) * (amount ?: 0.0)) - issuances.sum({ (it.acquireCost ?: 0.0) * it.issuedQuantity }) : null)"
+        <fields fieldSeqId="15" fieldPath="(issuances?.length ? ((toNumber(quantity) || 1) * (toNumber(amount) || 0)) - issuances.reduce((sum, it) => sum + (toNumber(it.acquireCost) || 0) * toNumber(it.issuedQuantity), 0) : null)"
                 fieldNameAlias="itemMarginTotal" fieldType="double"/>
-        <fields fieldSeqId="16" fieldPath="(issuances &amp;&amp; amount ? (((quantity ?: 1.0) * amount) - issuances.sum({ (it.acquireCost ?: 0.0) * it.issuedQuantity })) / ((quantity ?: 1.0) * amount) : null)"
+        <fields fieldSeqId="16" fieldPath="(issuances?.length &amp;&amp; toNumber(amount) ? (((toNumber(quantity) || 1) * toNumber(amount)) - issuances.reduce((sum, it) => sum + (toNumber(it.acquireCost) || 0) * toNumber(it.issuedQuantity), 0)) / ((toNumber(quantity) || 1) * toNumber(amount)) : null)"
                 fieldNameAlias="itemMarginPercent" fieldType="double"/>
 
         <fields fieldSeqId="21" fieldPath="invoice:fromPartyId"/>
@@ -219,12 +219,12 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="52" fieldPath="issuances:quantity" fieldNameAlias="issuedQuantity"/>
         <fields fieldSeqId="53" fieldPath="issuances:asset:acquireCost"/>
         <fields fieldSeqId="54" fieldPath="issuances:asset:lotId"/>
-        <fields fieldSeqId="55" fieldPath="issuances:(issuedQuantity * (amount ?: 0.0))" fieldNameAlias="issuedSaleTotal" fieldType="double"/>
-        <fields fieldSeqId="56" fieldPath="issuances:(acquireCost ? issuedQuantity * acquireCost : null)" fieldNameAlias="issuedCostTotal" fieldType="double"/>
-        <fields fieldSeqId="57" fieldPath="issuances:(acquireCost ? (amount ?: 0.0) - acquireCost : null)" fieldNameAlias="issuedMargin" fieldType="double"/>
-        <fields fieldSeqId="58" fieldPath="issuances:(acquireCost &amp;&amp; amount ? (amount - acquireCost) / amount : null)"
+        <fields fieldSeqId="55" fieldPath="issuances:(toNumber(issuedQuantity) * (toNumber(amount) || 0))" fieldNameAlias="issuedSaleTotal" fieldType="double"/>
+        <fields fieldSeqId="56" fieldPath="issuances:(toNumber(acquireCost) ? toNumber(issuedQuantity) * toNumber(acquireCost) : null)" fieldNameAlias="issuedCostTotal" fieldType="double"/>
+        <fields fieldSeqId="57" fieldPath="issuances:(toNumber(acquireCost) ? (toNumber(amount) || 0) - toNumber(acquireCost) : null)" fieldNameAlias="issuedMargin" fieldType="double"/>
+        <fields fieldSeqId="58" fieldPath="issuances:(toNumber(acquireCost) &amp;&amp; toNumber(amount) ? (toNumber(amount) - toNumber(acquireCost)) / toNumber(amount) : null)"
                 fieldNameAlias="issuedMarginPercent" fieldType="float"/>
-        <fields fieldSeqId="59" fieldPath="issuances:(acquireCost ? (issuedQuantity * (amount ?: 0.0)) - (issuedQuantity * acquireCost) : null)"
+        <fields fieldSeqId="59" fieldPath="issuances:(toNumber(acquireCost) ? (toNumber(issuedQuantity) * (toNumber(amount) || 0)) - (toNumber(issuedQuantity) * toNumber(acquireCost)) : null)"
                 fieldNameAlias="issuedMarginTotal" fieldType="double"/>
 
         <fields fieldSeqId="61" fieldPath="product:pseudoId"/>
@@ -246,7 +246,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="91" fieldPath="invoice:toClasses:fromDate" fieldNameAlias="classFromDate"/>
         <fields fieldSeqId="92" fieldPath="invoice:toClasses:thruDate" fieldNameAlias="classThruDate"/>
         <fields fieldSeqId="93" fieldPath="invoice:toClasses:classification:classificationTypeEnumId"/>
-        <fields fieldSeqId="94" fieldPath="((org.moqui.util.CollectionUtilities.filterMapListByDate(toClasses?.findAll(),'classFromDate','classThruDate', null)?.find()?.partyClassificationId)?:'CustConsumer')"
+        <fields fieldSeqId="94" fieldPath="((toClasses || []).find((it) => (!it.classFromDate || Number(it.classFromDate) &lt;= Date.now()) &amp;&amp; (!it.classThruDate || Number(it.classThruDate) > Date.now()))?.partyClassificationId || 'CustConsumer')"
                 fieldNameAlias="customerClassId" fieldType="keyword"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="fromRoleTypeId" fieldValue="OrgInternal"/>

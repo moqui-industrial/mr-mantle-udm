@@ -75,7 +75,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="06" fieldPath="selectedAmount"/>
         <fields fieldSeqId="07" fieldPath="unitAmount"/>
         <fields fieldSeqId="08" fieldPath="requiredByDate"/>
-        <fields fieldSeqId="09" fieldPath="((orderQuantity ?: 1.0) * (unitAmount ?: 0.0))" fieldNameAlias="orderItemTotal" fieldType="double"/>
+        <fields fieldSeqId="09" fieldPath="((toNumber(orderQuantity) || 1) * (toNumber(unitAmount) || 0))" fieldNameAlias="orderItemTotal" fieldType="double"/>
 
         <fields fieldSeqId="10" fieldPath="part:statusId" fieldNameAlias="partStatusId"/>
         <fields fieldSeqId="11" fieldPath="part:facilityId" fieldNameAlias="facilityId"/>
