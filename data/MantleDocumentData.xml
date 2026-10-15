@@ -31,7 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
     <dataDocuments dataDocumentId="MantleParty" indexName="mantle" documentName="Party"
             primaryEntityName="mantle.party.Party" documentTitle="PartyNameTemplate">
         <fields fieldSeqId="01" fieldPath="partyId"/>
-        <fields fieldSeqId="02" fieldPath="pseudoId"/>
+        <fields fieldSeqId="02" fieldPath="pseudoId" searchRole="code" searchWeight="A"/>
         <fields fieldSeqId="03" fieldPath="disabled"/>
         <fields fieldSeqId="04" fieldPath="externalId"/>
         <fields fieldSeqId="05" fieldPath="gatewayCimId"/>
@@ -39,14 +39,14 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="07" fieldPath="hasDuplicates"/>
 
         <fields fieldSeqId="08" fieldPath="partyTypeEnumId"/>
-        <fields fieldSeqId="09" fieldPath="type:description" fieldNameAlias="type"/>
+        <fields fieldSeqId="09" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
     
         <fields fieldSeqId="10" fieldPath="organization:organizationName"/>
         <fields fieldSeqId="11" fieldPath="person:firstName"/>
         <fields fieldSeqId="12" fieldPath="person:middleName"/>
         <fields fieldSeqId="13" fieldPath="person:lastName"/>
         <fields fieldSeqId="14" fieldPath="(`${organizationName||''}${firstName||''}${middleName ? ' ' + middleName : ''}${lastName ? ' ' + lastName : ''}`)"
-                fieldNameAlias="combinedName" fieldType="text" sortable="Y"/>
+                fieldNameAlias="combinedName" fieldType="text" sortable="Y" searchRole="title" searchWeight="A"/>
 
         <fields fieldSeqId="15" fieldPath="roles:roleTypeId"/>
         <fields fieldSeqId="16" fieldPath="roles:role:description" fieldNameAlias="role"/>
@@ -100,14 +100,16 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="90" fieldPath="ownerPartyId"/>
         <fields fieldSeqId="91" fieldPath="dataSourceId"/>
         <fields fieldSeqId="92" fieldPath="customerStatusId"/>
+        <links linkSeqId="01" linkSet="boss" label="Party" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.party.Party&amp;partyId=${partyId}"/>
     </dataDocuments>
     <dataDocuments dataDocumentId="MantleCommunicationEvent" indexName="mantle" documentName="Communication Event"
             primaryEntityName="mantle.party.communication.CommunicationEvent" documentTitle="${subject}">
         <fields fieldSeqId="01" fieldPath="communicationEventId"/>
         <fields fieldSeqId="02" fieldPath="communicationEventTypeId"/>
-        <fields fieldSeqId="03" fieldPath="type:description" fieldNameAlias="type"/>
+        <fields fieldSeqId="03" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="04" fieldPath="statusId"/>
-        <fields fieldSeqId="05" fieldPath="status:description" fieldNameAlias="status"/>
+        <fields fieldSeqId="05" fieldPath="status:description" fieldNameAlias="status" searchRole="subtitle"/>
         <fields fieldSeqId="06" fieldPath="parentCommEventId"/>
         <fields fieldSeqId="07" fieldPath="rootCommEventId"/>
         <fields fieldSeqId="10" fieldPath="fromPartyId"/>
@@ -118,7 +120,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="20" fieldPath="entryDate"/>
         <fields fieldSeqId="21" fieldPath="datetimeStarted"/>
         <fields fieldSeqId="22" fieldPath="datetimeEnded"/>
-        <fields fieldSeqId="23" fieldPath="subject"/>
+        <fields fieldSeqId="23" fieldPath="subject" searchRole="title" searchWeight="A"/>
         <fields fieldSeqId="24" fieldPath="contentType"/>
         <fields fieldSeqId="25" fieldPath="body"/>
         <fields fieldSeqId="26" fieldPath="note"/>
@@ -135,6 +137,8 @@ along with this software (see the LICENSE.md file). If not, see
 
         <fields fieldSeqId="40" fieldPath="purposes:purposeEnumId"/>
         <fields fieldSeqId="41" fieldPath="purposes:description" fieldNameAlias="purpose"/>
+        <links linkSeqId="01" linkSet="boss" label="Communication" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.party.communication.CommunicationEvent&amp;communicationEventId=${communicationEventId}"/>
     </dataDocuments>
 
     <!-- ========== Product ========== -->
@@ -142,16 +146,16 @@ along with this software (see the LICENSE.md file). If not, see
             primaryEntityName="mantle.product.Product" documentTitle="ProductNameTemplate"
             manualDataServiceName="mantle.product.ProductServices.get#ProductManualDocumentData">
         <fields fieldSeqId="01" fieldPath="productId"/>
-        <fields fieldSeqId="02" fieldPath="pseudoId"/>
-        <fields fieldSeqId="03" fieldPath="productName" fieldNameAlias="name"/>
-        <fields fieldSeqId="04" fieldPath="description"/>
+        <fields fieldSeqId="02" fieldPath="pseudoId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="03" fieldPath="productName" fieldNameAlias="name" searchRole="title" searchWeight="A"/>
+        <fields fieldSeqId="04" fieldPath="description" searchRole="subtitle" searchWeight="C"/>
         <fields fieldSeqId="05" fieldPath="salesIntroductionDate"/>
         <fields fieldSeqId="06" fieldPath="salesDiscontinuationDate"/>
         <fields fieldSeqId="07" fieldPath="supportDiscontinuationDate"/>
         <fields fieldSeqId="08" fieldPath="ownerPartyId"/>
 
         <fields fieldSeqId="10" fieldPath="productTypeEnumId"/>
-        <fields fieldSeqId="11" fieldPath="type:description" fieldNameAlias="type"/>
+        <fields fieldSeqId="11" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="12" fieldPath="productClassEnumId"/>
         <fields fieldSeqId="13" fieldPath="class:description" fieldNameAlias="class"/>
         <fields fieldSeqId="14" fieldPath="assetTypeEnumId"/>
@@ -201,20 +205,22 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="83" fieldPath="toAssocs:productId" fieldNameAlias="assocFromId"/>
         <fields fieldSeqId="84" fieldPath="toAssocs:productAssocTypeEnumId" fieldNameAlias="toProductAssocTypeEnumId"/>
         <fields fieldSeqId="85" fieldPath="toAssocs:type:description" fieldNameAlias="assocTypeTo"/>
+        <links linkSeqId="01" linkSet="boss" label="Product" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.product.Product&amp;productId=${productId}"/>
     </dataDocuments>
 
     <!-- ========== Facility ========== -->
     <dataDocuments dataDocumentId="MantleFacility" indexName="mantle" documentName="Facility"
             primaryEntityName="mantle.facility.Facility" documentTitle="FacilityNameTemplate">
         <fields fieldSeqId="01" fieldPath="facilityId"/>
-        <fields fieldSeqId="02" fieldPath="pseudoId"/>
-        <fields fieldSeqId="03" fieldPath="facilityName" fieldNameAlias="name"/>
+        <fields fieldSeqId="02" fieldPath="pseudoId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="03" fieldPath="facilityName" fieldNameAlias="name" searchRole="title" searchWeight="A"/>
         <fields fieldSeqId="04" fieldPath="description"/>
     
         <fields fieldSeqId="05" fieldPath="facilityTypeEnumId"/>
-        <fields fieldSeqId="06" fieldPath="type:description" fieldNameAlias="type"/>
+        <fields fieldSeqId="06" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="07" fieldPath="status:description" fieldNameAlias="status"/>
-        <fields fieldSeqId="08" fieldPath="ownerOrganization:organizationName" fieldNameAlias="ownerName"/>
+        <fields fieldSeqId="08" fieldPath="ownerOrganization:organizationName" fieldNameAlias="ownerName" searchRole="subtitle" searchWeight="B"/>
         <fields fieldSeqId="09" fieldPath="ownerPartyId"/>
 
         <fields fieldSeqId="20" fieldPath="contactMechs:postalAddress:contactMechId"/>
@@ -222,6 +228,8 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="22" fieldPath="contactMechs:postalAddress:city"/>
         <fields fieldSeqId="23" fieldPath="contactMechs:postalAddress:postalCode"/>
         <fields fieldSeqId="24" fieldPath="contactMechs:postalAddress:stateProvinceGeo:geoName" fieldNameAlias="state"/>
+        <links linkSeqId="01" linkSet="boss" label="Facility" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.facility.Facility&amp;facilityId=${facilityId}"/>
     </dataDocuments>
 
     <!-- ========== Wiki Page ========== -->
@@ -231,18 +239,127 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- NOTE: service purpose is to get wiki page contents from the file (resource) -->
         <fields fieldSeqId="01" fieldPath="wikiPageId"/>
         <fields fieldSeqId="02" fieldPath="wikiSpaceId"/>
-        <fields fieldSeqId="03" fieldPath="pagePath"/>
-        <fields fieldSeqId="04" fieldPath="space:description" fieldNameAlias="space"/>
+        <fields fieldSeqId="03" fieldPath="pagePath" searchRole="title" searchWeight="A"/>
+        <fields fieldSeqId="04" fieldPath="space:description" fieldNameAlias="space" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="05" fieldPath="publishedVersionName"/>
         <!-- the history fields are useful for update history and search by users who have updated a page, but also trigger indexing on page update -->
         <fields fieldSeqId="10" fieldPath="histories:historySeqId"/>
         <fields fieldSeqId="11" fieldPath="histories:changeDateTime"/>
         <fields fieldSeqId="12" fieldPath="histories:userId"/>
         <!-- causing issues with false update notice for other fields on UserAccount like during login: <fields fieldSeqId="01" fieldPath="histories:user:username"/> -->
+        <links linkSeqId="01" linkSet="boss" label="Wiki Page" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=moqui.resource.wiki.WikiPage&amp;wikiPageId=${wikiPageId}"/>
     </dataDocuments>
 
     <!-- ================ -->
     <!-- Search Data Feed -->
+    <!-- ========== Order, Invoice, Shipment, Asset (universal search) ========== -->
+    <!-- The links go to the generic entity screens until the IronStone screens for these records exist. -->
+    <dataDocuments dataDocumentId="MantleOrder" indexName="mantle" documentName="Order"
+            primaryEntityName="mantle.order.OrderHeader" documentTitle="${orderName ?? orderId}">
+        <fields fieldSeqId="01" fieldPath="orderId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="02" fieldPath="orderName"/>
+        <fields fieldSeqId="03" fieldPath="(orderName || ('Order ' + orderId))" fieldNameAlias="displayName" fieldType="text"
+                searchRole="title" searchWeight="A"/>
+        <fields fieldSeqId="04" fieldPath="externalId"/>
+        <fields fieldSeqId="05" fieldPath="statusId"/>
+        <fields fieldSeqId="06" fieldPath="status:description" fieldNameAlias="status" searchRole="category" sortable="Y"/>
+        <fields fieldSeqId="07" fieldPath="entryDate"/>
+        <fields fieldSeqId="08" fieldPath="placedDate"/>
+        <fields fieldSeqId="09" fieldPath="grandTotal"/>
+        <fields fieldSeqId="10" fieldPath="currencyUomId"/>
+        <fields fieldSeqId="11" fieldPath="productStoreId"/>
+        <fields fieldSeqId="20" fieldPath="parts:orderPartSeqId"/>
+        <fields fieldSeqId="21" fieldPath="parts:vendorPartyId"/>
+        <fields fieldSeqId="22" fieldPath="parts:customerPartyId"/>
+        <fields fieldSeqId="23" fieldPath="parts:customer:organization:organizationName" fieldNameAlias="customerOrganizationName"/>
+        <fields fieldSeqId="24" fieldPath="parts:customer:person:firstName" fieldNameAlias="customerFirstName"/>
+        <fields fieldSeqId="25" fieldPath="parts:customer:person:lastName" fieldNameAlias="customerLastName"/>
+        <fields fieldSeqId="26" fieldPath="((parts || []).map((part) =&gt; part.customerOrganizationName || [part.customerFirstName, part.customerLastName].filter((name) =&gt; name).join(' ')).filter((name) =&gt; name).join(', '))"
+                fieldNameAlias="customerNames" fieldType="text" searchRole="subtitle" searchWeight="B"/>
+        <fields fieldSeqId="30" fieldPath="items:productId"/>
+        <fields fieldSeqId="31" fieldPath="items:itemDescription"/>
+        <links linkSeqId="01" linkSet="boss" label="Order" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.order.OrderHeader&amp;orderId=${orderId}"/>
+    </dataDocuments>
+    <dataDocuments dataDocumentId="MantleInvoice" indexName="mantle" documentName="Invoice"
+            primaryEntityName="mantle.account.invoice.Invoice" documentTitle="${invoiceId}">
+        <fields fieldSeqId="01" fieldPath="invoiceId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="02" fieldPath="description"/>
+        <fields fieldSeqId="03" fieldPath="(description || referenceNumber || ('Invoice ' + invoiceId))" fieldNameAlias="displayName"
+                fieldType="text" searchRole="title" searchWeight="A"/>
+        <fields fieldSeqId="04" fieldPath="invoiceTypeEnumId"/>
+        <fields fieldSeqId="05" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
+        <fields fieldSeqId="06" fieldPath="statusId"/>
+        <fields fieldSeqId="07" fieldPath="status:description" fieldNameAlias="status"/>
+        <fields fieldSeqId="08" fieldPath="fromPartyId"/>
+        <fields fieldSeqId="09" fieldPath="toPartyId"/>
+        <fields fieldSeqId="10" fieldPath="fromOrganization:organizationName" fieldNameAlias="fromName"/>
+        <fields fieldSeqId="11" fieldPath="toOrganization:organizationName" fieldNameAlias="toOrganizationName"/>
+        <fields fieldSeqId="12" fieldPath="toPerson:firstName" fieldNameAlias="toFirstName"/>
+        <fields fieldSeqId="13" fieldPath="toPerson:lastName" fieldNameAlias="toLastName"/>
+        <fields fieldSeqId="14" fieldPath="(toOrganizationName || [toFirstName, toLastName].filter((name) =&gt; name).join(' '))"
+                fieldNameAlias="toName" fieldType="text" searchRole="subtitle" searchWeight="B"/>
+        <fields fieldSeqId="15" fieldPath="invoiceDate"/>
+        <fields fieldSeqId="16" fieldPath="dueDate"/>
+        <fields fieldSeqId="17" fieldPath="invoiceTotal"/>
+        <fields fieldSeqId="18" fieldPath="unpaidTotal"/>
+        <fields fieldSeqId="19" fieldPath="currencyUomId"/>
+        <fields fieldSeqId="20" fieldPath="referenceNumber"/>
+        <fields fieldSeqId="21" fieldPath="otherPartyOrderId"/>
+        <fields fieldSeqId="22" fieldPath="externalId"/>
+        <links linkSeqId="01" linkSet="boss" label="Invoice" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.account.invoice.Invoice&amp;invoiceId=${invoiceId}"/>
+    </dataDocuments>
+    <dataDocuments dataDocumentId="MantleShipment" indexName="mantle" documentName="Shipment"
+            primaryEntityName="mantle.shipment.Shipment" documentTitle="${shipmentId}">
+        <fields fieldSeqId="01" fieldPath="shipmentId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="02" fieldPath="('Shipment ' + shipmentId)" fieldNameAlias="displayName" fieldType="text"
+                searchRole="title" searchWeight="A"/>
+        <fields fieldSeqId="03" fieldPath="shipmentTypeEnumId"/>
+        <fields fieldSeqId="04" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
+        <fields fieldSeqId="05" fieldPath="statusId"/>
+        <fields fieldSeqId="06" fieldPath="status:description" fieldNameAlias="status"/>
+        <fields fieldSeqId="07" fieldPath="fromPartyId"/>
+        <fields fieldSeqId="08" fieldPath="toPartyId"/>
+        <fields fieldSeqId="09" fieldPath="toOrganization:organizationName" fieldNameAlias="toOrganizationName"/>
+        <fields fieldSeqId="10" fieldPath="toPerson:firstName" fieldNameAlias="toFirstName"/>
+        <fields fieldSeqId="11" fieldPath="toPerson:lastName" fieldNameAlias="toLastName"/>
+        <fields fieldSeqId="12" fieldPath="(toOrganizationName || [toFirstName, toLastName].filter((name) =&gt; name).join(' '))"
+                fieldNameAlias="toName" fieldType="text" searchRole="subtitle" searchWeight="B"/>
+        <fields fieldSeqId="13" fieldPath="entryDate"/>
+        <fields fieldSeqId="14" fieldPath="estimatedShipDate"/>
+        <fields fieldSeqId="15" fieldPath="productStoreId"/>
+        <fields fieldSeqId="16" fieldPath="otherPartyOrderId"/>
+        <fields fieldSeqId="17" fieldPath="externalId"/>
+        <links linkSeqId="01" linkSet="boss" label="Shipment" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.shipment.Shipment&amp;shipmentId=${shipmentId}"/>
+    </dataDocuments>
+    <dataDocuments dataDocumentId="MantleAsset" indexName="mantle" documentName="Asset"
+            primaryEntityName="mantle.product.asset.Asset" documentTitle="${assetId}">
+        <fields fieldSeqId="01" fieldPath="assetId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="02" fieldPath="assetName"/>
+        <fields fieldSeqId="03" fieldPath="product:productName"/>
+        <fields fieldSeqId="04" fieldPath="(assetName || productName || ('Asset ' + assetId))" fieldNameAlias="displayName"
+                fieldType="text" searchRole="title" searchWeight="A"/>
+        <fields fieldSeqId="05" fieldPath="assetTypeEnumId"/>
+        <fields fieldSeqId="06" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
+        <fields fieldSeqId="07" fieldPath="statusId"/>
+        <fields fieldSeqId="08" fieldPath="status:description" fieldNameAlias="status"/>
+        <fields fieldSeqId="09" fieldPath="ownerPartyId"/>
+        <fields fieldSeqId="10" fieldPath="productId"/>
+        <fields fieldSeqId="11" fieldPath="product:pseudoId" fieldNameAlias="productPseudoId"/>
+        <fields fieldSeqId="12" fieldPath="facilityId"/>
+        <fields fieldSeqId="13" fieldPath="facility:facilityName" fieldNameAlias="facilityName" searchRole="subtitle" searchWeight="B"/>
+        <fields fieldSeqId="14" fieldPath="serialNumber" searchWeight="A"/>
+        <fields fieldSeqId="15" fieldPath="lotId"/>
+        <fields fieldSeqId="16" fieldPath="quantityOnHandTotal"/>
+        <fields fieldSeqId="17" fieldPath="availableToPromiseTotal"/>
+        <fields fieldSeqId="18" fieldPath="receivedDate"/>
+        <links linkSeqId="01" linkSet="boss" label="Asset" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.product.asset.Asset&amp;assetId=${assetId}"/>
+    </dataDocuments>
+
     <moqui.entity.feed.DataFeed dataFeedId="MantleSearch" dataFeedTypeEnumId="DTFDTP_RT_PUSH" indexOnStartEmpty="Y"
             feedName="Mantle General Search" feedReceiveServiceName="org.moqui.search.SearchServices.index#DataDocuments"
             feedDeleteServiceName="org.moqui.search.SearchServices.delete#DataDocument">
@@ -251,5 +368,9 @@ along with this software (see the LICENSE.md file). If not, see
         <documents dataDocumentId="MantleProduct"/>
         <documents dataDocumentId="MantleFacility"/>
         <documents dataDocumentId="MantleWikiPage"/>
+        <documents dataDocumentId="MantleOrder"/>
+        <documents dataDocumentId="MantleInvoice"/>
+        <documents dataDocumentId="MantleShipment"/>
+        <documents dataDocumentId="MantleAsset"/>
     </moqui.entity.feed.DataFeed>
 </entity-facade-xml>
