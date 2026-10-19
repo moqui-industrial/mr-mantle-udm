@@ -100,6 +100,8 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="90" fieldPath="ownerPartyId"/>
         <fields fieldSeqId="91" fieldPath="dataSourceId"/>
         <fields fieldSeqId="92" fieldPath="customerStatusId"/>
+        <!-- a personal contact's owner: search#Party, search#Universal and the party drop-downs show it only to that user -->
+        <fields fieldSeqId="93" fieldPath="privateOwnerUserId"/>
         <links linkSeqId="01" linkSet="boss" label="Party" urlType="plain"
                 linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.party.Party&amp;partyId=${partyId}"/>
     </dataDocuments>

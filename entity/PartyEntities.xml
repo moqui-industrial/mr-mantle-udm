@@ -43,6 +43,10 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="hasDuplicates" type="text-indicator"/>
         <field name="lastDupCheckDate" type="date-time"/>
         <field name="mergedToPartyId" type="id"/><!-- no fk to avoid circular dependency, set automatically -->
+        <field name="privateOwnerUserId" type="id" enable-audit-log="update">
+            <description>For a personal contact, the user it belongs to: only that user sees the party (the MANTLE_USER_ORG and
+                MANTLE_ACTIVE_ORG entity filters, and the party finds, searches, lookups and duplicate services). Empty for a
+                directory party; cleared when the contact is linked to the directory.</description></field>
 
         <relationship type="one" title="PartyType" related="moqui.basic.Enumeration" short-alias="type">
             <key-map field-name="partyTypeEnumId"/></relationship>
@@ -51,6 +55,8 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" title="Owner" related="mantle.party.Party" short-alias="owner">
             <key-map field-name="ownerPartyId"/></relationship>
         <relationship type="one" related="moqui.basic.DataSource"/>
+        <relationship type="one" title="PrivateOwner" related="moqui.security.UserAccount" short-alias="privateOwnerUser">
+            <key-map field-name="privateOwnerUserId" related="userId"/></relationship>
 
         <relationship type="one-nofk" related="mantle.party.Organization" short-alias="organization" mutable="true"/>
         <relationship type="one-nofk" related="mantle.party.Person" short-alias="person" mutable="true"/>
@@ -87,6 +93,7 @@ along with this software (see the LICENSE.md file). If not, see
         <index name="PARTY_ID_PSEUDO" unique="true"><index-field name="pseudoId"/><index-field name="ownerPartyId"/></index>
         <index name="PARTY_ID_EXT"><index-field name="externalId"/></index>
         <index name="PARTY_ID_MERGETO"><index-field name="mergedToPartyId"/></index>
+        <index name="PARTY_PRIV_OWNER"><index-field name="privateOwnerUserId"/></index>
 
         <seed-data>
             <!-- Party Type -->
@@ -1380,6 +1387,104 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- mantle.party.contact -->
     <!-- ========================================================= -->
 
+    <entity entity-name="ContactBook" package="mantle.party.contact" cache="never">
+        <description>A named collection of parties: a user's personal book (ownerUserId, visibility CbvPersonal) or a shared
+            book (visibility CbvShared, ownerPartyId the organization it belongs to, if any) that ContactBookShare rows open
+            to users and user groups. A personal contact (Party.privateOwnerUserId set) goes only in its owner's personal
+            books. The members are ContactBookParty rows; groups (labels) inside the book are ContactBookGroup.
+            mantle.party.ContactBookServices checks access: the owner manages a personal book, shares give view, edit or
+            manage on a shared one.</description>
+        <field name="contactBookId" type="id" is-pk="true"/>
+        <field name="contactBookName" type="text-medium"/>
+        <field name="description" type="text-long"/>
+        <field name="color" type="text-short"><description>The book's color, a CSS color such as #1e88e5</description></field>
+        <field name="ownerUserId" type="id"><description>The user a personal book belongs to</description></field>
+        <field name="ownerPartyId" type="id"><description>The organization a shared book belongs to</description></field>
+        <field name="visibilityEnumId" type="id"/>
+        <field name="isDefault" type="text-indicator"><description>Y on the user's default personal book, where new
+            personal contacts go</description></field>
+        <field name="createdDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <relationship type="one" title="Owner" related="moqui.security.UserAccount" short-alias="ownerUser">
+            <key-map field-name="ownerUserId" related="userId"/></relationship>
+        <relationship type="one" title="Owner" related="mantle.party.Party" short-alias="ownerParty">
+            <key-map field-name="ownerPartyId" related="partyId"/></relationship>
+        <relationship type="one" title="ContactBookVisibility" related="moqui.basic.Enumeration" short-alias="visibility">
+            <key-map field-name="visibilityEnumId"/></relationship>
+        <relationship type="many" related="mantle.party.contact.ContactBookParty" short-alias="parties">
+            <key-map field-name="contactBookId"/></relationship>
+        <relationship type="many" related="mantle.party.contact.ContactBookGroup" short-alias="groups">
+            <key-map field-name="contactBookId"/></relationship>
+        <relationship type="many" related="mantle.party.contact.ContactBookShare" short-alias="shares">
+            <key-map field-name="contactBookId"/></relationship>
+        <index name="CNTBK_OWNER_USER"><index-field name="ownerUserId"/></index>
+        <index name="CNTBK_OWNER_PARTY"><index-field name="ownerPartyId"/></index>
+        <seed-data>
+            <!-- Contact Book Visibility -->
+            <moqui.basic.EnumerationType description="Contact Book Visibility" enumTypeId="ContactBookVisibility"/>
+            <moqui.basic.Enumeration enumId="CbvPersonal" description="Personal" sequenceNum="1" enumTypeId="ContactBookVisibility"/>
+            <moqui.basic.Enumeration enumId="CbvShared" description="Shared" sequenceNum="2" enumTypeId="ContactBookVisibility"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="ContactBookGroup" package="mantle.party.contact" cache="never">
+        <description>A group (label) inside a contact book; a party may be in any number of its book's groups.</description>
+        <field name="contactBookGroupId" type="id" is-pk="true"/>
+        <field name="contactBookId" type="id"/>
+        <field name="groupName" type="text-medium"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <relationship type="one" related="mantle.party.contact.ContactBook" short-alias="contactBook"/>
+        <relationship type="many" related="mantle.party.contact.ContactBookGroupParty" short-alias="parties">
+            <key-map field-name="contactBookGroupId"/></relationship>
+        <index name="CNTBK_GRP_BOOK"><index-field name="contactBookId"/></index>
+    </entity>
+    <entity entity-name="ContactBookGroupParty" package="mantle.party.contact" cache="never">
+        <description>A party in a contact book group. A label is on or off, so removing it deletes the row; fromDate is when
+            it was added.</description>
+        <field name="contactBookGroupId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <relationship type="one" related="mantle.party.contact.ContactBookGroup" short-alias="group"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <index name="CNTBK_GRP_PTY_PARTY"><index-field name="partyId"/></index>
+    </entity>
+    <entity entity-name="ContactBookParty" package="mantle.party.contact" cache="never">
+        <description>A party in a contact book, from fromDate until thruDate (removing it sets thruDate); isFavorite stars it
+            in that book.</description>
+        <field name="contactBookId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="isFavorite" type="text-indicator"/>
+        <relationship type="one" related="mantle.party.contact.ContactBook" short-alias="contactBook"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <index name="CNTBK_PTY_PARTY"><index-field name="partyId"/></index>
+    </entity>
+    <entity entity-name="ContactBookShare" package="mantle.party.contact" cache="never">
+        <description>A shared contact book opened to a user (userId) or a user group (userGroupId) with a permission: view
+            (read and export), edit (members, groups and favorites) or manage (the book itself and its shares). Unsharing
+            sets thruDate.</description>
+        <field name="contactBookShareId" type="id" is-pk="true"/>
+        <field name="contactBookId" type="id"/>
+        <field name="userId" type="id"/>
+        <field name="userGroupId" type="id"/>
+        <field name="permissionEnumId" type="id"/>
+        <field name="fromDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related="mantle.party.contact.ContactBook" short-alias="contactBook"/>
+        <relationship type="one" related="moqui.security.UserAccount" short-alias="user"/>
+        <relationship type="one" related="moqui.security.UserGroup" short-alias="userGroup"/>
+        <relationship type="one" title="ContactBookPermission" related="moqui.basic.Enumeration" short-alias="permission">
+            <key-map field-name="permissionEnumId"/></relationship>
+        <index name="CNTBK_SHARE_BOOK"><index-field name="contactBookId"/></index>
+        <index name="CNTBK_SHARE_USER"><index-field name="userId"/></index>
+        <index name="CNTBK_SHARE_GROUP"><index-field name="userGroupId"/></index>
+        <seed-data>
+            <!-- Contact Book Permission, each including the ones before it -->
+            <moqui.basic.EnumerationType description="Contact Book Permission" enumTypeId="ContactBookPermission"/>
+            <moqui.basic.Enumeration enumId="CbpView" description="View" sequenceNum="1" enumTypeId="ContactBookPermission"/>
+            <moqui.basic.Enumeration enumId="CbpEdit" description="Edit" sequenceNum="2" enumTypeId="ContactBookPermission"/>
+            <moqui.basic.Enumeration enumId="CbpManage" description="Manage" sequenceNum="3" enumTypeId="ContactBookPermission"/>
+        </seed-data>
+    </entity>
     <entity entity-name="ContactMech" package="mantle.party.contact" short-alias="contactMechs" use="nontransactional" cache="never">
         <field name="contactMechId" type="id" is-pk="true"/>
         <field name="contactMechTypeEnumId" type="id"/>
