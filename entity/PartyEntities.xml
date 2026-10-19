@@ -490,6 +490,24 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="mantle.party.Party"/>
         <relationship type="one" related="moqui.security.UserAccount"/>
     </entity>
+    <entity entity-name="PartyNotDuplicate" package="mantle.party" cache="never">
+        <description>A decision that two parties are not duplicates (mantle.party.DuplicateServices mark#PartyNotDuplicate and
+            unmark#PartyNotDuplicate). The duplicate services leave the pair out: find#PartyDuplicates, find#PartyHasDuplicates,
+            find#PartyNameMatches and so the check#AllPartyDuplicates scan. One row per pair either way round: partyId is the
+            lower id of the two and otherPartyId the higher, so a party's decisions are the rows with its id in either field.
+            merge#Parties moves the merged party's decisions to the party it is merged into.</description>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="otherPartyId" type="id" is-pk="true"/>
+        <field name="decidedByUserId" type="id"/>
+        <field name="decidedDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" title="Other" related="mantle.party.Party" short-alias="otherParty">
+            <key-map field-name="otherPartyId" related="partyId"/></relationship>
+        <relationship type="one" title="DecidedBy" related="moqui.security.UserAccount" short-alias="decidedByUser">
+            <key-map field-name="decidedByUserId" related="userId"/></relationship>
+        <index name="PTY_NOTDUP_OTHER"><index-field name="otherPartyId"/></index>
+    </entity>
     <entity entity-name="PartyRelationship" package="mantle.party">
         <field name="partyRelationshipId" type="id" is-pk="true"/>
         <field name="relationshipTypeEnumId" type="id"/>
@@ -1393,6 +1411,25 @@ along with this software (see the LICENSE.md file). If not, see
             <!-- services that add entries to a record's timeline (mantle.party.CommunicationServices.get#RecordTimeline) -->
             <moqui.basic.Enumeration description="Record Timeline Source" enumId="RecordTimelineSource" enumTypeId="ServiceRegisterType"/>
         </seed-data>
+    </entity>
+    <entity entity-name="EmailMessageRecord" package="mantle.party.communication" cache="never">
+        <description>A record a mail client message (moqui.basic.email.EmailMessage) is to be filed on once it is sent: the
+            Compose "File on" chip of a draft, a scheduled send or one held for undo or waiting in the Outbox after a failed
+            send. mantle.party.CommunicationServices.send#EmailDraft writes it after checking the user sees the record;
+            when the message reaches ES_SENT, file#SentEmail files it (link#CommunicationEventRecord with the
+            emailMessageId) and deletes the row. No foreign key to the message, so the mail client deletes a draft freely;
+            the message's delete ECA removes its rows.</description>
+        <field name="emailMessageId" type="id" is-pk="true"/>
+        <field name="recordEntityName" type="text-medium" is-pk="true"/>
+        <field name="recordId" type="id" is-pk="true"/>
+        <field name="linkedByUserId" type="id"/>
+        <field name="linkedDate" type="date-time"/>
+        <field name="notifyFollowers" type="text-indicator"/>
+        <field name="recordUrl" type="text-medium"><description>The record's screen, for the follower notification's link</description></field>
+        <relationship type="one-nofk" related="moqui.basic.email.EmailMessage" short-alias="emailMessage"/>
+        <relationship type="one-nofk" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
+            <key-map field-name="linkedByUserId" related="userId"/></relationship>
+        <index name="EMAIL_MSG_REC_RECORD" unique="false"><index-field name="recordEntityName"/><index-field name="recordId"/></index>
     </entity>
     <entity entity-name="CommunicationEventType" package="mantle.party.communication">
         <field name="communicationEventTypeId" type="id" is-pk="true"/>
