@@ -1181,6 +1181,10 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="reasonEnumId" type="id"/>
         <field name="contactListId" type="id"/>
         <field name="emailMessageId" type="id"/>
+        <field name="editedDate" type="date-time"><description>When its author last changed the text of a note or comment
+            after posting it (mantle.party.CommunicationServices.update#RecordNote,
+            mantle.request.RequestServices.update#RequestComment); empty for one never changed. A timeline shows it as
+            edited.</description></field>
 
         <relationship type="one" related="mantle.party.communication.CommunicationEventType" short-alias="type"/>
         <relationship type="one" title="ContactMechType" related="moqui.basic.Enumeration" short-alias="contactMechType">
@@ -1463,6 +1467,9 @@ along with this software (see the LICENSE.md file). If not, see
             <CommunicationEventType communicationEventTypeId="Comment" description="Comment"/>
             <CommunicationEventType communicationEventTypeId="Message" description="Message"/>
             <CommunicationEventType communicationEventTypeId="AutoEmail" description="Auto Email" contactMechTypeEnumId="CmtEmailAddress"/>
+            <!-- a message of a chat room (the framework's moqui.chat store) filed on a record or turned into a task, request or
+                event (mantle.party.CommunicationServices.findOrCreate#ChatCommunicationEvent) -->
+            <CommunicationEventType communicationEventTypeId="Chat" description="Chat Message"/>
         </seed-data>
     </entity>
     <entity entity-name="RecordFollower" package="mantle.party.communication" cache="never">
