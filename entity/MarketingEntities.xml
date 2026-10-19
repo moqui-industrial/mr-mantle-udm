@@ -226,7 +226,39 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_PENDING" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Subscription Accepted - Unsubscribed"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_IN_USE" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Subscription In Use - Unsubscribed"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_INVALID" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Subscription Invalid - Unsubscribed"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBS_PENDING" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Confirm Unsubscribe"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBS_PENDING" toStatusId="CLPT_ACCEPTED" transitionName="Cancel Unsubscribe"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBSCRIBED" toStatusId="CLPT_ACCEPTED" transitionName="Subscribe Again"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBSCRIBED" toStatusId="CLPT_PENDING" transitionName="Subscribe Again - Pending"/>
         </seed-data>
+    </entity>
+    <entity entity-name="ContactListToken" package="mantle.marketing.contact" cache="never">
+        <description>The token of an unsubscribe link for a party on a contact list: the /u/&lt;token&gt; of the public
+            Unsubscribe page and of the List-Unsubscribe header's one-click POST (RFC 8058), usually one per message sent
+            (communicationEventId, messageId). The token is random (32 URL-safe characters, 192 bits) and is given only
+            when it is created; this keeps its hash (tokenHash), so reading the rows gives no working links. A token ends
+            at thruDate (revoked or expired); usedDate is its last use. mantle.party.ConsentServices create#UnsubscribeToken,
+            resolve#UnsubscribeToken, apply#UnsubscribePreferences and unsubscribe#ContactListParty.</description>
+        <field name="contactListTokenId" type="id" is-pk="true"/>
+        <field name="tokenHash" type="id-long"/>
+        <field name="contactListId" type="id"/>
+        <field name="partyId" type="id"/>
+        <field name="contactMechId" type="id"><description>The address the message went to</description></field>
+        <field name="communicationEventId" type="id"/>
+        <field name="messageId" type="text-medium"/>
+        <field name="purposeEnumId" type="id"><description>PartyConsentPurpose: PcpMarketingEmail, or PcpSms for a list
+            of phone numbers</description></field>
+        <field name="createdDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <field name="usedDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related="mantle.marketing.contact.ContactList" short-alias="contactList"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" related="mantle.party.contact.ContactMech" short-alias="contactMech"/>
+        <relationship type="one" related="mantle.party.communication.CommunicationEvent" short-alias="communicationEvent"/>
+        <relationship type="one" title="PartyConsentPurpose" related="moqui.basic.Enumeration" short-alias="purpose">
+            <key-map field-name="purposeEnumId"/></relationship>
+        <index name="CNTLSTTKN_HASH" unique="true"><index-field name="tokenHash"/></index>
+        <index name="CNTLSTTKN_PARTY"><index-field name="partyId"/></index>
     </entity>
 
     <!-- ========================================================= -->
