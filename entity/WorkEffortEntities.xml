@@ -16,11 +16,125 @@ along with this software (see the LICENSE.md file). If not, see
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
 
     <!-- ========================================================= -->
+    <!--  - mantle.work.calendar -->
     <!--  - mantle.work.effort -->
     <!--  - mantle.work.estimate -->
     <!--  - mantle.work.measurement -->
     <!--  - mantle.work.time -->
     <!-- ========================================================= -->
+
+    <!-- ========================================================= -->
+    <!-- mantle.work.calendar -->
+    <!-- ========================================================= -->
+
+    <entity entity-name="Calendar" package="mantle.work.calendar" cache="never">
+        <description>A named collection of events (WorkEffort, usually WetEvent) through CalendarWorkEffort rows: a user's
+            personal calendar (kind CalkPersonal, ownerPartyId the user's person party; one of them isDefault=Y, made on first
+            use), a shared calendar (CalkShared, ownerPartyId a person or an organization, opened by CalendarShare rows), a
+            resource calendar (CalkResource, a meeting room or equipment schedule) or an external feed (CalkSubscription, with
+            its CalendarSubscription; its events come only from the feed). A calendar grid shows the events of the calendars
+            toggled on plus every event where the user is a WorkEffortParty, so an event needs no calendar to appear.
+            mantle.work.CalendarServices checks access: the owner's person manages, shares give free/busy, view, edit or
+            manage.</description>
+        <field name="calendarId" type="id" is-pk="true"/>
+        <field name="ownerPartyId" type="id"><description>A person (a personal calendar) or an organization</description></field>
+        <field name="calendarName" type="text-medium"/>
+        <field name="description" type="text-long"/>
+        <field name="color" type="text-short"><description>The calendar's color, a CSS color such as #1e88e5</description></field>
+        <field name="calendarKindEnumId" type="id"/>
+        <field name="timeZone" type="text-short"><description>The time zone new events and recurrence rules of this calendar
+            use; empty for the user's time zone</description></field>
+        <field name="isDefault" type="text-indicator"><description>Y on the owner's default personal calendar, where new
+            events go</description></field>
+        <field name="createdDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <relationship type="one" title="Owner" related="mantle.party.Party" short-alias="owner">
+            <key-map field-name="ownerPartyId" related="partyId"/></relationship>
+        <relationship type="one" title="CalendarKind" related="moqui.basic.Enumeration" short-alias="kind">
+            <key-map field-name="calendarKindEnumId"/></relationship>
+        <relationship type="many" related="mantle.work.calendar.CalendarWorkEffort" short-alias="workEfforts">
+            <key-map field-name="calendarId"/></relationship>
+        <relationship type="many" related="mantle.work.calendar.CalendarShare" short-alias="shares">
+            <key-map field-name="calendarId"/></relationship>
+        <relationship type="one-nofk" related="mantle.work.calendar.CalendarSubscription" short-alias="subscription">
+            <key-map field-name="calendarId"/></relationship>
+        <index name="CALENDAR_OWNER"><index-field name="ownerPartyId"/></index>
+        <seed-data>
+            <!-- Calendar Kind -->
+            <moqui.basic.EnumerationType description="Calendar Kind" enumTypeId="CalendarKind"/>
+            <moqui.basic.Enumeration enumId="CalkPersonal" description="Personal" sequenceNum="1" enumTypeId="CalendarKind"/>
+            <moqui.basic.Enumeration enumId="CalkShared" description="Shared" sequenceNum="2" enumTypeId="CalendarKind"/>
+            <moqui.basic.Enumeration enumId="CalkResource" description="Resource" sequenceNum="3" enumTypeId="CalendarKind"/>
+            <moqui.basic.Enumeration enumId="CalkSubscription" description="Subscription" sequenceNum="4" enumTypeId="CalendarKind"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="CalendarShare" package="mantle.work.calendar" cache="never">
+        <description>A calendar opened to a user (userId), a user group (userGroupId) or a party (partyId: a person, or an
+            organization for the users whose party belongs to it) with a permission: free/busy (busy times only), view (the
+            events), edit (add, change and remove events) or manage (the calendar itself and its shares). A publish link is a
+            share with a publishToken and none of userId, userGroupId and partyId, view or free/busy only, optionally with a
+            password (passwordHash). Unsharing sets thruDate.</description>
+        <field name="calendarShareId" type="id" is-pk="true"/>
+        <field name="calendarId" type="id"/>
+        <field name="userId" type="id"/>
+        <field name="userGroupId" type="id"/>
+        <field name="partyId" type="id"/>
+        <field name="permissionEnumId" type="id"/>
+        <field name="publishToken" type="text-medium"><description>The secret of a publish link (anyone with the link)</description></field>
+        <field name="passwordHash" type="text-medium"><description>The publish link's optional password, hashed</description></field>
+        <field name="fromDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related="mantle.work.calendar.Calendar" short-alias="calendar"/>
+        <relationship type="one" related="moqui.security.UserAccount" short-alias="user"/>
+        <relationship type="one" related="moqui.security.UserGroup" short-alias="userGroup"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" title="CalendarPermission" related="moqui.basic.Enumeration" short-alias="permission">
+            <key-map field-name="permissionEnumId"/></relationship>
+        <index name="CAL_SHARE_CALENDAR"><index-field name="calendarId"/></index>
+        <index name="CAL_SHARE_USER"><index-field name="userId"/></index>
+        <index name="CAL_SHARE_GROUP"><index-field name="userGroupId"/></index>
+        <index name="CAL_SHARE_PARTY"><index-field name="partyId"/></index>
+        <index name="CAL_SHARE_TOKEN" unique="true"><index-field name="publishToken"/></index>
+        <seed-data>
+            <!-- Calendar Permission, each including the ones before it -->
+            <moqui.basic.EnumerationType description="Calendar Permission" enumTypeId="CalendarPermission"/>
+            <moqui.basic.Enumeration enumId="CalpFreeBusy" description="See only free/busy" sequenceNum="1" enumTypeId="CalendarPermission"/>
+            <moqui.basic.Enumeration enumId="CalpView" description="View all event details" sequenceNum="2" enumTypeId="CalendarPermission"/>
+            <moqui.basic.Enumeration enumId="CalpEdit" description="Make changes to events" sequenceNum="3" enumTypeId="CalendarPermission"/>
+            <moqui.basic.Enumeration enumId="CalpManage" description="Make changes and manage sharing" sequenceNum="4" enumTypeId="CalendarPermission"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="CalendarSubscription" package="mantle.work.calendar" cache="never">
+        <description>The external feed of a subscription calendar (kind CalkSubscription): an iCalendar URL (http, https or
+            webcal) or a provider account (Google, Microsoft 365: later, through OAuth). The fetch job
+            (mantle.work.CalendarServices.fetch#CalendarSubscriptions) reads it every refreshMinutes and writes its events
+            into the calendar; lastFetchStatus is ok or error, with the error's text in lastFetchError.</description>
+        <field name="calendarId" type="id" is-pk="true"/>
+        <field name="url" type="text-medium"/>
+        <field name="providerEnumId" type="id"/>
+        <field name="refreshMinutes" type="number-integer"/>
+        <field name="lastFetchDate" type="date-time"/>
+        <field name="lastFetchStatus" type="text-short"><description>ok or error; empty until the first fetch</description></field>
+        <field name="lastFetchError" type="text-long"/>
+        <relationship type="one" related="mantle.work.calendar.Calendar" short-alias="calendar"/>
+        <relationship type="one" title="CalendarSubscriptionProvider" related="moqui.basic.Enumeration" short-alias="provider">
+            <key-map field-name="providerEnumId"/></relationship>
+        <seed-data>
+            <!-- Calendar Subscription Provider -->
+            <moqui.basic.EnumerationType description="Calendar Subscription Provider" enumTypeId="CalendarSubscriptionProvider"/>
+            <moqui.basic.Enumeration enumId="CspIcsUrl" description="iCalendar URL" sequenceNum="1" enumTypeId="CalendarSubscriptionProvider"/>
+            <moqui.basic.Enumeration enumId="CspGoogle" description="Google Calendar" sequenceNum="2" enumTypeId="CalendarSubscriptionProvider"/>
+            <moqui.basic.Enumeration enumId="CspMicrosoft" description="Microsoft 365" sequenceNum="3" enumTypeId="CalendarSubscriptionProvider"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="CalendarWorkEffort" package="mantle.work.calendar" cache="never">
+        <description>An event (or another work effort) in a calendar. An event may be in several calendars, and in none.</description>
+        <field name="calendarId" type="id" is-pk="true"/>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="addedDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <relationship type="one" related="mantle.work.calendar.Calendar" short-alias="calendar"/>
+        <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
+        <index name="CAL_WEFF_WEFF"><index-field name="workEffortId"/></index>
+    </entity>
 
     <!-- ========================================================= -->
     <!-- mantle.work.effort -->
@@ -154,6 +268,12 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="many" related="mantle.work.effort.WorkEffortParty" short-alias="parties">
             <key-map field-name="workEffortId"/></relationship>
         <relationship type="many" related="mantle.work.effort.WorkEffortProduct" short-alias="products">
+            <key-map field-name="workEffortId"/></relationship>
+        <relationship type="one-nofk" related="mantle.work.effort.WorkEffortRecurrence" short-alias="recurrence">
+            <key-map field-name="workEffortId"/></relationship>
+        <relationship type="many" related="mantle.work.effort.WorkEffortReminder" short-alias="reminders">
+            <key-map field-name="workEffortId"/></relationship>
+        <relationship type="many" related="mantle.work.calendar.CalendarWorkEffort" short-alias="calendars">
             <key-map field-name="workEffortId"/></relationship>
 
         <index name="WORK_EFF_ST_WET" unique="false"><index-field name="statusId"/><index-field name="workEffortTypeEnumId"/></index>
@@ -385,6 +505,11 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.Enumeration description="Milestone" enumId="WeatMilestone" enumTypeId="WorkEffortAssocType"/>
             <moqui.basic.Enumeration description="Release" enumId="WeatRelease" enumTypeId="WorkEffortAssocType"/>
             <moqui.basic.Enumeration description="Component" enumId="WeatComponent" enumTypeId="WorkEffortAssocType"/>
+            <!-- an instance of a recurring event (WorkEffortRecurrence) changed on its own: workEffortId the series, toWorkEffortId
+                the instance's own WorkEffort, which replaces the generated instance, and fromDate the start of the instance it
+                replaces (the iCalendar RECURRENCE-ID), so these rows are not date-filtered; a cancelled instance (WeCancelled)
+                takes it out of the series -->
+            <moqui.basic.Enumeration description="Recurrence Instance" enumId="WeatRecurrenceInstance" enumTypeId="WorkEffortAssocType"/>
         </seed-data>
     </entity>
 
@@ -476,18 +601,37 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="mantle.humanres.position.EmplPosition" short-alias="position"/>
     </entity>
     <entity entity-name="WorkEffortFacility" package="mantle.work.effort" cache="never">
+        <description>A facility a work effort uses: the inventory origin of a production run, or a meeting room (or another
+            bookable facility) an event books, whose statusId is the booking (WefRequested waits for approval, WefAssigned is
+            booked, WefRequestDenied with the reason in comments); empty for the uses that are not bookings.</description>
         <field name="workEffortId" type="id" is-pk="true"/>
         <field name="facilityId" type="id" is-pk="true"/>
         <field name="typeEnumId" type="id"/>
+        <field name="statusId" type="id" enable-audit-log="true"/>
+        <field name="comments" type="text-medium"/>
         <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
         <relationship type="one" related="mantle.facility.Facility" short-alias="facility"/>
         <relationship type="one" title="WorkEffortFacilityType" related="moqui.basic.Enumeration" short-alias="type">
             <key-map field-name="typeEnumId"/></relationship>
+        <relationship type="one" title="WorkEffortFacility" related="moqui.basic.StatusItem" short-alias="status"/>
         <seed-data>
             <!-- Work Effort Product Type -->
             <moqui.basic.EnumerationType description="Work Effort Facility Type" enumTypeId="WorkEffortFacilityType"/>
             <moqui.basic.Enumeration enumId="WeftOrigin" description="Inventory Origin" enumTypeId="WorkEffortFacilityType"/>
             <moqui.basic.Enumeration enumId="WeftUsed" description="Also Used" enumTypeId="WorkEffortFacilityType"/>
+
+            <!-- Work Effort Facility (booking) Status -->
+            <moqui.basic.StatusType description="Work Effort Facility Status" statusTypeId="WorkEffortFacility"/>
+            <moqui.basic.StatusItem description="Requested" sequenceNum="1" statusId="WefRequested" statusTypeId="WorkEffortFacility"/>
+            <moqui.basic.StatusItem description="Assigned" sequenceNum="2" statusId="WefAssigned" statusTypeId="WorkEffortFacility"/>
+            <moqui.basic.StatusItem description="Request Denied" sequenceNum="9" statusId="WefRequestDenied" statusTypeId="WorkEffortFacility"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WefRequested" toStatusId="WefAssigned" transitionName="Assign"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WefRequested" toStatusId="WefRequestDenied" transitionName="Deny Request"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WefRequestDenied" toStatusId="WefRequested" transitionName="Request Again"/>
+
+            <!-- A party whose approval a booking of a facility (FacilityParty) or an asset (AssetPartyAssignment) needs: the
+                placeholder booking policy of mantle.work.EventServices.book#Resource until Maintenance designs the real one -->
+            <mantle.party.RoleType description="Booking Approver" roleTypeId="BookingApprover"/>
         </seed-data>
     </entity>
     <entity entity-name="WorkEffortNote" package="mantle.work.effort" cache="never">
@@ -517,6 +661,10 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="receiveNotifications" type="text-indicator"/>
         <field name="snoozedThruDate" type="date-time"><description>Hidden from this party's Today until this date (a snooze);
             the work effort's dates and the other parties' Today stay as they are</description></field>
+        <field name="invitationSentDate" type="date-time"><description>When the last invitation to the event went to this
+            attendee (mantle.work.EventServices.send#EventInvitations)</description></field>
+        <field name="invitationDigest" type="text-short"><description>A digest of the event's name, time, place and recurrence
+            as that invitation had them: a different digest now means the attendee gets an updated invitation</description></field>
         <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
         <relationship type="one" related="mantle.party.Party" short-alias="party"/>
         <relationship type="one-nofk" related="mantle.party.Person" short-alias="person"/>
@@ -544,6 +692,8 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.StatusItem description="Departed" sequenceNum="4" statusId="WeptDeparted" statusTypeId="WorkEffortParty"/>
             <moqui.basic.StatusItem description="Declined" sequenceNum="10" statusId="WeptDeclined" statusTypeId="WorkEffortParty"/>
             <moqui.basic.StatusItem description="Unassigned" sequenceNum="11" statusId="WeptUnassigned" statusTypeId="WorkEffortParty"/>
+            <!-- an invitation answered maybe (RSVP tentative) -->
+            <moqui.basic.StatusItem description="Tentative" sequenceNum="5" statusId="WeptTentative" statusTypeId="WorkEffortParty"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptOffered" toStatusId="WeptAssigned" transitionName="Accept Assignment"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptOffered" toStatusId="WeptDeclined" transitionName="Decline Assignment"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptAssigned" toStatusId="WeptArrived" transitionName="Arrive"/>
@@ -554,6 +704,15 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptAssigned" toStatusId="WeptUnassigned" transitionName="Unassign"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptUnassigned" toStatusId="WeptAssigned" transitionName="Assign"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptUnassigned" toStatusId="WeptOffered" transitionName="Offer"/>
+            <!-- event invitation answers (RSVP): accept is Assigned, tentative is Tentative, decline is Declined, and any answer
+                can change to another -->
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptOffered" toStatusId="WeptTentative" transitionName="Accept Tentatively"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptTentative" toStatusId="WeptAssigned" transitionName="Accept Assignment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptTentative" toStatusId="WeptDeclined" transitionName="Decline Assignment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptDeclined" toStatusId="WeptAssigned" transitionName="Accept Assignment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptDeclined" toStatusId="WeptTentative" transitionName="Accept Tentatively"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptAssigned" toStatusId="WeptDeclined" transitionName="Decline Assignment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeptAssigned" toStatusId="WeptTentative" transitionName="Accept Tentatively"/>
 
             <!-- Work Effort Party Availability -->
             <moqui.basic.EnumerationType description="Work Effort Party Availability" enumTypeId="WorkEffortPartyAvailability"/>
@@ -667,6 +826,44 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
             <key-map field-name="linkedByUserId" related="userId"/></relationship>
         <index name="WORKEFF_REC_RECORD" unique="false"><index-field name="recordEntityName"/><index-field name="recordId"/></index>
+    </entity>
+    <entity entity-name="WorkEffortRecurrence" package="mantle.work.effort" cache="never">
+        <description>The recurrence of an event (or a task) as iCalendar (RFC 5545) has it: the work effort is the series and
+            its dates are the first instance (DTSTART and its duration). rrule is the RRULE value (FREQ=WEEKLY;BYDAY=MO,WE),
+            exdates and rdates the EXDATE and RDATE values (comma separated DATE-TIME or DATE values, as in an ICS file), all
+            read in timeZone (an IANA name; empty for the calendar's or the user's). An instance changed on its own is a
+            WorkEffort linked from the series by WorkEffortAssoc WeatRecurrenceInstance. The framework's ICalendar tool
+            expands the rule; the older WorkEffort.recurStartCron, recurLimit and recurEndDate stay for jobs.</description>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="rrule" type="text-long"/>
+        <field name="exdates" type="text-very-long"/>
+        <field name="rdates" type="text-very-long"/>
+        <field name="timeZone" type="text-short"/>
+        <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
+    </entity>
+    <entity entity-name="WorkEffortReminder" package="mantle.work.effort" cache="never">
+        <description>A reminder of an event or a task for one of its parties: offsetMinutes before the event's start (a task's
+            due date), by notification on the topic WorkEffortReminder or by email (methodEnumId). The reminder job
+            (mantle.work.EventServices.send#DueReminders) sends it once per instance and sets sentDate; snoozedThruDate holds it
+            back, then sends it again.</description>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="reminderSeqId" type="id" is-pk="true"/>
+        <field name="offsetMinutes" type="number-integer"><description>Minutes before the start; 0 at the start</description></field>
+        <field name="methodEnumId" type="id"/>
+        <field name="sentDate" type="date-time"/>
+        <field name="snoozedThruDate" type="date-time"/>
+        <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" title="WorkEffortReminderMethod" related="moqui.basic.Enumeration" short-alias="method">
+            <key-map field-name="methodEnumId"/></relationship>
+        <index name="WORKEFF_RMD_PARTY" unique="false"><index-field name="partyId"/></index>
+        <seed-data>
+            <!-- Work Effort Reminder Method -->
+            <moqui.basic.EnumerationType description="Work Effort Reminder Method" enumTypeId="WorkEffortReminderMethod"/>
+            <moqui.basic.Enumeration enumId="WermNotification" description="Notification" sequenceNum="1" enumTypeId="WorkEffortReminderMethod"/>
+            <moqui.basic.Enumeration enumId="WermEmail" description="Email" sequenceNum="2" enumTypeId="WorkEffortReminderMethod"/>
+        </seed-data>
     </entity>
     <entity entity-name="WorkEffortSkillStandard" package="mantle.work.effort" cache="never">
         <field name="workEffortId" type="id" is-pk="true"/>
