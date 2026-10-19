@@ -490,6 +490,24 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="mantle.party.Party"/>
         <relationship type="one" related="moqui.security.UserAccount"/>
     </entity>
+    <entity entity-name="PartyNotDuplicate" package="mantle.party" cache="never">
+        <description>A decision that two parties are not duplicates (mantle.party.DuplicateServices mark#PartyNotDuplicate and
+            unmark#PartyNotDuplicate). The duplicate services leave the pair out: find#PartyDuplicates, find#PartyHasDuplicates,
+            find#PartyNameMatches and so the check#AllPartyDuplicates scan. One row per pair either way round: partyId is the
+            lower id of the two and otherPartyId the higher, so a party's decisions are the rows with its id in either field.
+            merge#Parties moves the merged party's decisions to the party it is merged into.</description>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="otherPartyId" type="id" is-pk="true"/>
+        <field name="decidedByUserId" type="id"/>
+        <field name="decidedDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" title="Other" related="mantle.party.Party" short-alias="otherParty">
+            <key-map field-name="otherPartyId" related="partyId"/></relationship>
+        <relationship type="one" title="DecidedBy" related="moqui.security.UserAccount" short-alias="decidedByUser">
+            <key-map field-name="decidedByUserId" related="userId"/></relationship>
+        <index name="PTY_NOTDUP_OTHER"><index-field name="otherPartyId"/></index>
+    </entity>
     <entity entity-name="PartyRelationship" package="mantle.party">
         <field name="partyRelationshipId" type="id" is-pk="true"/>
         <field name="relationshipTypeEnumId" type="id"/>
