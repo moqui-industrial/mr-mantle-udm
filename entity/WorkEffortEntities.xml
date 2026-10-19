@@ -515,6 +515,8 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="comments" type="text-medium"/>
         <field name="mustRsvp" type="text-indicator"/>
         <field name="receiveNotifications" type="text-indicator"/>
+        <field name="snoozedThruDate" type="date-time"><description>Hidden from this party's Today until this date (a snooze);
+            the work effort's dates and the other parties' Today stay as they are</description></field>
         <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
         <relationship type="one" related="mantle.party.Party" short-alias="party"/>
         <relationship type="one-nofk" related="mantle.party.Person" short-alias="person"/>
