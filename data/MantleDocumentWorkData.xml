@@ -26,12 +26,12 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- Project -->
     <dataDocuments dataDocumentId="MantleProject" indexName="mantle" documentName="Project"
             primaryEntityName="mantle.work.effort.WorkEffort" documentTitle="${name}">
-        <fields fieldSeqId="01" fieldPath="workEffortId"/>
-        <fields fieldSeqId="02" fieldPath="workEffortName" fieldNameAlias="name"/>
+        <fields fieldSeqId="01" fieldPath="workEffortId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="02" fieldPath="workEffortName" fieldNameAlias="name" searchRole="title" searchWeight="A"/>
         <fields fieldSeqId="03" fieldPath="workEffortTypeEnumId"/><!-- this is aliased so we can have a condition on it -->
-        <fields fieldSeqId="04" fieldPath="status:description" fieldNameAlias="status"/>
+        <fields fieldSeqId="04" fieldPath="status:description" fieldNameAlias="status" searchRole="subtitle"/>
         <fields fieldSeqId="05" fieldPath="type:description" fieldNameAlias="type"/>
-        <fields fieldSeqId="06" fieldPath="purpose:description" fieldNameAlias="purpose"/>
+        <fields fieldSeqId="06" fieldPath="purpose:description" fieldNameAlias="purpose" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="10" fieldPath="parties:partyId"/>
         <fields fieldSeqId="11" fieldPath="parties:role:description" fieldNameAlias="role"/>
         <fields fieldSeqId="12" fieldPath="parties:person:firstName"/>
@@ -41,25 +41,28 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="17" fieldPath="ownerPartyId"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="workEffortTypeEnumId" fieldValue="WetProject"/>
+        <!-- the generic entity screen until the IronStone Projects app has a project screen -->
+        <links linkSeqId="01" linkSet="boss" label="Project" urlType="plain"
+                linkUrl="/apps/tools/AutoScreen/AutoEdit/AutoEditMaster?aen=mantle.work.effort.WorkEffort&amp;workEffortId=${workEffortId}"/>
     </dataDocuments>
 
     <!-- Task -->
     <dataDocuments dataDocumentId="MantleTask" indexName="mantle" documentName="Task"
             primaryEntityName="mantle.work.effort.WorkEffort" documentTitle="${name}">
-        <fields fieldSeqId="01" fieldPath="workEffortId"/>
+        <fields fieldSeqId="01" fieldPath="workEffortId" searchRole="code" searchWeight="A"/>
         <fields fieldSeqId="02" fieldPath="rootWorkEffortId" fieldNameAlias="project"/>
         <fields fieldSeqId="03" fieldPath="parentWorkEffortId" fieldNameAlias="parent"/>
-        <fields fieldSeqId="04" fieldPath="workEffortName" fieldNameAlias="name"/>
+        <fields fieldSeqId="04" fieldPath="workEffortName" fieldNameAlias="name" searchRole="title" searchWeight="A"/>
         <fields fieldSeqId="05" fieldPath="workEffortTypeEnumId"/><!-- this is aliased so we can have a condition on it -->
         <fields fieldSeqId="06" fieldPath="priority"/>
-        <fields fieldSeqId="07" fieldPath="description"/>
+        <fields fieldSeqId="07" fieldPath="description" searchWeight="C"/>
         <fields fieldSeqId="08" fieldPath="location"/>
 
         <fields fieldSeqId="10" fieldPath="statusId"/>
-        <fields fieldSeqId="11" fieldPath="status:description" fieldNameAlias="status"/>
+        <fields fieldSeqId="11" fieldPath="status:description" fieldNameAlias="status" searchRole="subtitle"/>
         <fields fieldSeqId="12" fieldPath="type:description" fieldNameAlias="type"/>
         <fields fieldSeqId="13" fieldPath="purposeEnumId"/>
-        <fields fieldSeqId="14" fieldPath="purpose:description" fieldNameAlias="purpose"/>
+        <fields fieldSeqId="14" fieldPath="purpose:description" fieldNameAlias="purpose" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="15" fieldPath="resolutionEnumId"/>
         <fields fieldSeqId="16" fieldPath="resolution:description" fieldNameAlias="resolution"/>
         <fields fieldSeqId="17" fieldPath="ownerPartyId"/>
@@ -86,22 +89,25 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="52" fieldPath="communicationEvents:communicationEvent:body" fieldNameAlias="comBody"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="workEffortTypeEnumId" fieldValue="WetTask"/>
+        <links linkSeqId="01" linkSet="boss" label="Task" urlType="plain"
+                linkUrl="/apps/Commons/Tasks/TaskDetail?workEffortId=${workEffortId}"/>
     </dataDocuments>
 
     <!-- Event -->
     <dataDocuments dataDocumentId="MantleEvent" indexName="mantle" documentName="Event"
             primaryEntityName="mantle.work.effort.WorkEffort" documentTitle="${name}">
-        <fields fieldSeqId="01" fieldPath="workEffortId"/>
+        <fields fieldSeqId="01" fieldPath="workEffortId" searchRole="code" searchWeight="A"/>
         <fields fieldSeqId="02" fieldPath="rootWorkEffortId" fieldNameAlias="project"/>
         <fields fieldSeqId="03" fieldPath="parentWorkEffortId" fieldNameAlias="parent"/>
-        <fields fieldSeqId="04" fieldPath="workEffortName" fieldNameAlias="name"/>
+        <fields fieldSeqId="04" fieldPath="workEffortName" fieldNameAlias="name" searchRole="title" searchWeight="A"/>
         <fields fieldSeqId="05" fieldPath="workEffortTypeEnumId"/><!-- this is aliased so we can have a condition on it -->
         <fields fieldSeqId="06" fieldPath="priority"/>
+        <fields fieldSeqId="07" fieldPath="description" searchWeight="C"/>
         <fields fieldSeqId="10" fieldPath="statusId"/>
-        <fields fieldSeqId="11" fieldPath="status:description" fieldNameAlias="status"/>
+        <fields fieldSeqId="11" fieldPath="status:description" fieldNameAlias="status" searchRole="subtitle"/>
         <fields fieldSeqId="12" fieldPath="type:description" fieldNameAlias="type"/>
         <fields fieldSeqId="13" fieldPath="purposeEnumId"/>
-        <fields fieldSeqId="14" fieldPath="purpose:description" fieldNameAlias="purpose"/>
+        <fields fieldSeqId="14" fieldPath="purpose:description" fieldNameAlias="purpose" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="15" fieldPath="resolutionEnumId"/>
         <fields fieldSeqId="16" fieldPath="resolution:description" fieldNameAlias="resolution"/>
         <fields fieldSeqId="17" fieldPath="ownerPartyId"/>
@@ -124,16 +130,18 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="42" fieldPath="facility:ownerPartyId" fieldNameAlias="facilityOwnerPartyId"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="workEffortTypeEnumId" fieldValue="WetEvent"/>
+        <links linkSeqId="01" linkSet="boss" label="Event" urlType="plain"
+                linkUrl="/apps/Commons/Calendar/EventDetail?workEffortId=${workEffortId}"/>
     </dataDocuments>
 
     <!-- Request -->
     <dataDocuments dataDocumentId="MantleRequest" indexName="mantle" documentName="Request"
             primaryEntityName="mantle.request.Request" documentTitle="${name}">
-        <fields fieldSeqId="01" fieldPath="requestId"/>
-        <fields fieldSeqId="02" fieldPath="requestName" fieldNameAlias="name"/>
-        <fields fieldSeqId="03" fieldPath="description"/>
-        <fields fieldSeqId="04" fieldPath="status:description" fieldNameAlias="status"/>
-        <fields fieldSeqId="05" fieldPath="type:description" fieldNameAlias="type"/>
+        <fields fieldSeqId="01" fieldPath="requestId" searchRole="code" searchWeight="A"/>
+        <fields fieldSeqId="02" fieldPath="requestName" fieldNameAlias="name" searchRole="title" searchWeight="A"/>
+        <fields fieldSeqId="03" fieldPath="description" searchWeight="C"/>
+        <fields fieldSeqId="04" fieldPath="status:description" fieldNameAlias="status" searchRole="subtitle"/>
+        <fields fieldSeqId="05" fieldPath="type:description" fieldNameAlias="type" searchRole="category" sortable="Y"/>
         <fields fieldSeqId="06" fieldPath="resolution:description" fieldNameAlias="resolution"/>
         <fields fieldSeqId="07" fieldPath="workEfforts:workEffortId" fieldNameAlias="task"/>
         <fields fieldSeqId="08" fieldPath="priority"/>
@@ -167,6 +175,8 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="50" fieldPath="communicationEvents:communicationEventId"/>
         <fields fieldSeqId="51" fieldPath="communicationEvents:communicationEvent:subject" fieldNameAlias="comSubject"/>
         <fields fieldSeqId="52" fieldPath="communicationEvents:communicationEvent:body" fieldNameAlias="comBody"/>
+        <links linkSeqId="01" linkSet="boss" label="Request" urlType="plain"
+                linkUrl="/apps/Commons/Requests/RequestDetail?requestId=${requestId}"/>
     </dataDocuments>
 
     <!-- ================ -->

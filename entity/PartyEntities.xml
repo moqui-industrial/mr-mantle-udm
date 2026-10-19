@@ -1147,6 +1147,7 @@ along with this software (see the LICENSE.md file). If not, see
 
         <index name="COMMEVT_TP_ST_CET" unique="false"><index-field name="toPartyId"/><index-field name="statusId"/>
             <index-field name="communicationEventTypeId"/></index>
+        <index name="COMMEVT_EMAIL_MSG" unique="false"><index-field name="emailMessageId"/></index>
 
         <seed-data>
             <!-- Communication Event Status -->
@@ -1298,6 +1299,26 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.Enumeration enumId="CpShipments" description="Shipments" enumTypeId="CommunicationPurpose"/>
         </seed-data>
     </entity>
+    <entity entity-name="CommunicationEventRecord" package="mantle.party.communication" cache="never">
+        <description>A communication event filed on any record, by the record's full entity name and the value of its single
+            primary key field, for a record type without a join of its own. The own joins (OrderCommunicationEvent,
+            RequestCommEvent, WorkEffortCommEvent, WikiPageCommunicationEvent) stay, and a party's link is the event's from
+            and to party and its CommunicationEventParty rows; mantle.party.CommunicationServices.link#CommunicationEventRecord
+            chooses.</description>
+        <field name="communicationEventId" type="id" is-pk="true"/>
+        <field name="recordEntityName" type="text-medium" is-pk="true"/>
+        <field name="recordId" type="id" is-pk="true"/>
+        <field name="linkedByUserId" type="id"/>
+        <field name="linkedDate" type="date-time"/>
+        <relationship type="one" related="mantle.party.communication.CommunicationEvent" short-alias="communicationEvent"/>
+        <relationship type="one" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
+            <key-map field-name="linkedByUserId" related="userId"/></relationship>
+        <index name="COMMEVT_REC_RECORD" unique="false"><index-field name="recordEntityName"/><index-field name="recordId"/></index>
+        <seed-data>
+            <!-- services that add entries to a record's timeline (mantle.party.CommunicationServices.get#RecordTimeline) -->
+            <moqui.basic.Enumeration description="Record Timeline Source" enumId="RecordTimelineSource" enumTypeId="ServiceRegisterType"/>
+        </seed-data>
+    </entity>
     <entity entity-name="CommunicationEventType" package="mantle.party.communication">
         <field name="communicationEventTypeId" type="id" is-pk="true"/>
         <field name="parentTypeId" type="id"/>
@@ -1331,6 +1352,20 @@ along with this software (see the LICENSE.md file). If not, see
             <CommunicationEventType communicationEventTypeId="Message" description="Message"/>
             <CommunicationEventType communicationEventTypeId="AutoEmail" description="Auto Email" contactMechTypeEnumId="CmtEmailAddress"/>
         </seed-data>
+    </entity>
+    <entity entity-name="RecordFollower" package="mantle.party.communication" cache="never">
+        <description>A user following a record (its full entity name and single primary key value), and which kinds of
+            activity on it notify the user: messages, notes, activities and changes. Unfollowing deletes the row.</description>
+        <field name="recordEntityName" type="text-medium" is-pk="true"/>
+        <field name="recordId" type="id" is-pk="true"/>
+        <field name="userId" type="id" is-pk="true"/>
+        <field name="notifyMessages" type="text-indicator" default="'Y'"/>
+        <field name="notifyNotes" type="text-indicator" default="'Y'"/>
+        <field name="notifyActivities" type="text-indicator" default="'Y'"/>
+        <field name="notifyChanges" type="text-indicator" default="'N'"/>
+        <field name="fromDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <relationship type="one" related="moqui.security.UserAccount" short-alias="user"/>
+        <index name="RECORD_FOLLOWER_USER" unique="false"><index-field name="userId"/></index>
     </entity>
     <entity entity-name="WikiPageCommunicationEvent" package="mantle.party.communication" cache="never">
         <field name="wikiPageId" type="id" is-pk="true"/>

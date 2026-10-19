@@ -651,6 +651,21 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.StatusItem description="Cancelled" sequenceNum="3" statusId="WepdCancelled" statusTypeId="WorkEffortProduct"/>
         </seed-data>
     </entity>
+    <entity entity-name="WorkEffortRecord" package="mantle.work.effort" cache="never">
+        <description>A work effort (an activity: a call, email, to-do or meeting) on any record, by the record's full entity
+            name and the value of its single primary key field, for a record type without a join of its own. The own joins
+            (mantle.request.RequestWorkEffort, WikiPageWorkEffort) stay; mantle.work.WorkEffortServices.link#WorkEffortRecord
+            chooses.</description>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="recordEntityName" type="text-medium" is-pk="true"/>
+        <field name="recordId" type="id" is-pk="true"/>
+        <field name="linkedByUserId" type="id"/>
+        <field name="linkedDate" type="date-time"/>
+        <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
+        <relationship type="one" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
+            <key-map field-name="linkedByUserId" related="userId"/></relationship>
+        <index name="WORKEFF_REC_RECORD" unique="false"><index-field name="recordEntityName"/><index-field name="recordId"/></index>
+    </entity>
     <entity entity-name="WorkEffortSkillStandard" package="mantle.work.effort" cache="never">
         <field name="workEffortId" type="id" is-pk="true"/>
         <field name="skillTypeEnumId" type="id" is-pk="true"/>
