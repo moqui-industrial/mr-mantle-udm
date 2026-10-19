@@ -37,6 +37,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="12" fieldPath="parties:person:firstName"/>
         <fields fieldSeqId="13" fieldPath="parties:person:lastName"/>
         <fields fieldSeqId="14" fieldPath="parties:organization:organizationName"/>
+        <fields fieldSeqId="15" fieldPath="parties:thruDate" fieldNameAlias="partyThruDate"/>
         <fields fieldSeqId="17" fieldPath="ownerPartyId"/>
 
         <conditions conditionSeqId="01" fieldNameAlias="workEffortTypeEnumId" fieldValue="WetProject"/>
@@ -69,6 +70,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="23" fieldPath="parties:person:lastName"/>
         <fields fieldSeqId="24" fieldPath="parties:organization:organizationName"/>
         <!-- no longer used for update notifications and causing issues with false update notice for other fields on UserAccount like during login: <fields fieldSeqId="25" fieldPath="parties:userAccounts:userId"/> -->
+        <fields fieldSeqId="26" fieldPath="parties:thruDate" fieldNameAlias="partyThruDate"/>
 
         <fields fieldSeqId="30" fieldPath="assocs:toWorkEffortId" fieldNameAlias="assocToId"/>
         <fields fieldSeqId="31" fieldPath="assocs:type:description" fieldNameAlias="assocType"/>
@@ -110,6 +112,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="23" fieldPath="parties:person:lastName"/>
         <fields fieldSeqId="24" fieldPath="parties:organization:organizationName"/>
         <!-- no longer used for update notifications and causing issues with false update notice for other fields on UserAccount like during login: <fields fieldSeqId="25" fieldPath="parties:userAccounts:userId"/> -->
+        <fields fieldSeqId="26" fieldPath="parties:thruDate" fieldNameAlias="partyThruDate"/>
 
         <fields fieldSeqId="30" fieldPath="assocs:toWorkEffortId" fieldNameAlias="assocToId"/>
         <fields fieldSeqId="31" fieldPath="assocs:type:description" fieldNameAlias="assocType"/>
@@ -140,6 +143,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="12" fieldPath="parties:person:firstName"/>
         <fields fieldSeqId="13" fieldPath="parties:person:lastName"/>
         <fields fieldSeqId="14" fieldPath="parties:organization:organizationName"/>
+        <fields fieldSeqId="15" fieldPath="parties:thruDate" fieldNameAlias="partyThruDate"/>
 
         <fields fieldSeqId="20" fieldPath="requestDate"/>
         <fields fieldSeqId="21" fieldPath="responseRequiredDate"/>
