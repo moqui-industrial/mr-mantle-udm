@@ -1394,6 +1394,25 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.Enumeration description="Record Timeline Source" enumId="RecordTimelineSource" enumTypeId="ServiceRegisterType"/>
         </seed-data>
     </entity>
+    <entity entity-name="EmailMessageRecord" package="mantle.party.communication" cache="never">
+        <description>A record a mail client message (moqui.basic.email.EmailMessage) is to be filed on once it is sent: the
+            Compose "File on" chip of a draft, a scheduled send or one held for undo or waiting in the Outbox after a failed
+            send. mantle.party.CommunicationServices.send#EmailDraft writes it after checking the user sees the record;
+            when the message reaches ES_SENT, file#SentEmail files it (link#CommunicationEventRecord with the
+            emailMessageId) and deletes the row. No foreign key to the message, so the mail client deletes a draft freely;
+            the message's delete ECA removes its rows.</description>
+        <field name="emailMessageId" type="id" is-pk="true"/>
+        <field name="recordEntityName" type="text-medium" is-pk="true"/>
+        <field name="recordId" type="id" is-pk="true"/>
+        <field name="linkedByUserId" type="id"/>
+        <field name="linkedDate" type="date-time"/>
+        <field name="notifyFollowers" type="text-indicator"/>
+        <field name="recordUrl" type="text-medium"><description>The record's screen, for the follower notification's link</description></field>
+        <relationship type="one-nofk" related="moqui.basic.email.EmailMessage" short-alias="emailMessage"/>
+        <relationship type="one-nofk" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
+            <key-map field-name="linkedByUserId" related="userId"/></relationship>
+        <index name="EMAIL_MSG_REC_RECORD" unique="false"><index-field name="recordEntityName"/><index-field name="recordId"/></index>
+    </entity>
     <entity entity-name="CommunicationEventType" package="mantle.party.communication">
         <field name="communicationEventTypeId" type="id" is-pk="true"/>
         <field name="parentTypeId" type="id"/>
