@@ -1463,6 +1463,9 @@ along with this software (see the LICENSE.md file). If not, see
             <CommunicationEventType communicationEventTypeId="Comment" description="Comment"/>
             <CommunicationEventType communicationEventTypeId="Message" description="Message"/>
             <CommunicationEventType communicationEventTypeId="AutoEmail" description="Auto Email" contactMechTypeEnumId="CmtEmailAddress"/>
+            <!-- a message of a chat room (the framework's moqui.chat store) filed on a record or turned into a task, request or
+                event (mantle.party.CommunicationServices.findOrCreate#ChatCommunicationEvent) -->
+            <CommunicationEventType communicationEventTypeId="Chat" description="Chat Message"/>
         </seed-data>
     </entity>
     <entity entity-name="RecordFollower" package="mantle.party.communication" cache="never">
