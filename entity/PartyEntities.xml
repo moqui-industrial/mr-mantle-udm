@@ -1250,6 +1250,12 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="roleTypeId" type="id" is-pk="true"/>
         <field name="contactMechId" type="id"/>
         <field name="statusId" type="id"/>
+        <!-- the recipient's own state of an internal message (to, cc or mailbox delivery role): one message to several
+            parties has a state per party; a party has one such row per message, its role by priority to, cc, mailbox -->
+        <field name="readDate" type="date-time"><description>Empty is unread</description></field>
+        <field name="isFlagged" type="text-indicator"/>
+        <field name="archivedDate" type="date-time"/>
+        <field name="snoozedThruDate" type="date-time"><description>Hidden from the Inbox until this date</description></field>
         <relationship type="one" related="mantle.party.communication.CommunicationEvent" short-alias="communicationEvent"/>
         <relationship type="one" related="mantle.party.Party" short-alias="party"/>
         <relationship type="one-nofk" related="mantle.party.Person" short-alias="person"/>
@@ -1258,6 +1264,8 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" title="CommunicationEventParty" related="moqui.basic.StatusItem" short-alias="status"/>
         <relationship type="many" related="moqui.security.UserAccount" short-alias="userAccounts">
             <key-map field-name="partyId"/></relationship>
+        <!-- a party's unread rows, for the Inbox and its count -->
+        <index name="COMMEVTPTY_PTY_READ" unique="false"><index-field name="partyId"/><index-field name="readDate"/></index>
         <seed-data>
             <moqui.basic.StatusType description="Communication Event Party" statusTypeId="CommunicationEventParty"/>
             <moqui.basic.StatusItem description="Sent" sequenceNum="1" statusId="CepSent" statusTypeId="CommunicationEventParty"/>
@@ -1275,6 +1283,12 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CepAssigned" toStatusId="CepReferred" transitionName="Refer"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CepAssigned" toStatusId="CepClosed" transitionName="Close"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CepResolved" toStatusId="CepClosed" transitionName="Close"/>
+
+            <!-- the roles of an internal message's recipients, in priority order: a party named in To, in Cc (an @mention
+                too), and a party a mailbox post reached as a member or a participant of the thread -->
+            <mantle.party.RoleType description="Message To" roleTypeId="MessageTo"/>
+            <mantle.party.RoleType description="Message Cc" roleTypeId="MessageCc"/>
+            <mantle.party.RoleType description="Message Mailbox Delivery" roleTypeId="MessageMailbox"/>
         </seed-data>
     </entity>
     <entity entity-name="CommunicationEventProduct" package="mantle.party.communication" cache="never">
