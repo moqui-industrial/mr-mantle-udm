@@ -344,6 +344,60 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="moqui.basic.Uom" short-alias="uom"/>
     </entity>
 
+    <entity entity-name="PartyConsent" package="mantle.party" cache="never">
+        <description>A party's consent, granted or withdrawn, for a purpose (marketing email, SMS, phone, data processing):
+            for one of its addresses (contactMechId) or the party as a whole (none), and for a list subscription change
+            (contactListId), with when, how (sourceEnumId), the evidence and who recorded it. History only: each change is
+            a new row and rows are not updated. The current state of a purpose for an address (or for the party, with no
+            contactMechId) is its latest row without a contactListId, by consentDate; a row with a contactListId is the
+            history of that list's subscription, whose state is the ContactListParty status. Whether an address may be
+            solicited is PartyContactMech.allowSolicitation, which mantle.party.ConsentServices.store#PartyConsent keeps
+            in step with the marketing purposes of the address.</description>
+        <field name="partyConsentId" type="id" is-pk="true"/>
+        <field name="partyId" type="id"/>
+        <field name="contactMechId" type="id"/>
+        <field name="purposeEnumId" type="id"/>
+        <field name="statusId" type="id"/>
+        <field name="consentDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <field name="sourceEnumId" type="id"/>
+        <field name="evidenceText" type="text-long"><description>What shows the consent or its withdrawal: the form and
+            its wording, the import file, the message whose link was used</description></field>
+        <field name="contactListId" type="id"><description>Set on a list subscription change</description></field>
+        <field name="userId" type="id"><description>The user who recorded it; empty for the anonymous unsubscribe
+            page</description></field>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" related="mantle.party.contact.ContactMech" short-alias="contactMech"/>
+        <relationship type="one" title="PartyConsentPurpose" related="moqui.basic.Enumeration" short-alias="purpose">
+            <key-map field-name="purposeEnumId"/></relationship>
+        <relationship type="one" title="PartyConsent" related="moqui.basic.StatusItem" short-alias="status"/>
+        <relationship type="one" title="PartyConsentSource" related="moqui.basic.Enumeration" short-alias="source">
+            <key-map field-name="sourceEnumId"/></relationship>
+        <relationship type="one" related="mantle.marketing.contact.ContactList" short-alias="contactList"/>
+        <relationship type="one" related="moqui.security.UserAccount" short-alias="user"/>
+        <index name="PARTY_CONSENT_PARTY"><index-field name="partyId"/></index>
+        <seed-data>
+            <!-- Party Consent Purpose -->
+            <moqui.basic.EnumerationType description="Party Consent Purpose" enumTypeId="PartyConsentPurpose"/>
+            <moqui.basic.Enumeration enumId="PcpMarketingEmail" description="Marketing Email" sequenceNum="1" enumTypeId="PartyConsentPurpose"/>
+            <moqui.basic.Enumeration enumId="PcpSms" description="SMS" sequenceNum="2" enumTypeId="PartyConsentPurpose"/>
+            <moqui.basic.Enumeration enumId="PcpPhone" description="Phone" sequenceNum="3" enumTypeId="PartyConsentPurpose"/>
+            <moqui.basic.Enumeration enumId="PcpDataProcessing" description="Data Processing" sequenceNum="4" enumTypeId="PartyConsentPurpose"/>
+
+            <!-- Party Consent Source -->
+            <moqui.basic.EnumerationType description="Party Consent Source" enumTypeId="PartyConsentSource"/>
+            <moqui.basic.Enumeration enumId="PcsForm" description="Form" sequenceNum="1" enumTypeId="PartyConsentSource"/>
+            <moqui.basic.Enumeration enumId="PcsImport" description="Import" sequenceNum="2" enumTypeId="PartyConsentSource"/>
+            <moqui.basic.Enumeration enumId="PcsEmailLink" description="Email Link" sequenceNum="3" enumTypeId="PartyConsentSource"/>
+            <moqui.basic.Enumeration enumId="PcsStaff" description="Staff" sequenceNum="4" enumTypeId="PartyConsentSource"/>
+            <moqui.basic.Enumeration enumId="PcsApi" description="API" sequenceNum="5" enumTypeId="PartyConsentSource"/>
+
+            <!-- Party Consent Status: each change is a new row, so there are no transitions -->
+            <moqui.basic.StatusType description="Party Consent" statusTypeId="PartyConsent"/>
+            <moqui.basic.StatusItem description="Granted" sequenceNum="1" statusId="PconGranted" statusTypeId="PartyConsent"/>
+            <moqui.basic.StatusItem description="Withdrawn" sequenceNum="2" statusId="PconWithdrawn" statusTypeId="PartyConsent"/>
+        </seed-data>
+    </entity>
     <entity entity-name="PartyContent" package="mantle.party">
         <field name="partyContentId" type="id" is-pk="true"/>
         <field name="partyId" type="id"/>
@@ -1250,6 +1304,12 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="roleTypeId" type="id" is-pk="true"/>
         <field name="contactMechId" type="id"/>
         <field name="statusId" type="id"/>
+        <!-- the recipient's own state of an internal message (to, cc or mailbox delivery role): one message to several
+            parties has a state per party; a party has one such row per message, its role by priority to, cc, mailbox -->
+        <field name="readDate" type="date-time"><description>Empty is unread</description></field>
+        <field name="isFlagged" type="text-indicator"/>
+        <field name="archivedDate" type="date-time"/>
+        <field name="snoozedThruDate" type="date-time"><description>Hidden from the Inbox until this date</description></field>
         <relationship type="one" related="mantle.party.communication.CommunicationEvent" short-alias="communicationEvent"/>
         <relationship type="one" related="mantle.party.Party" short-alias="party"/>
         <relationship type="one-nofk" related="mantle.party.Person" short-alias="person"/>
@@ -1258,6 +1318,8 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" title="CommunicationEventParty" related="moqui.basic.StatusItem" short-alias="status"/>
         <relationship type="many" related="moqui.security.UserAccount" short-alias="userAccounts">
             <key-map field-name="partyId"/></relationship>
+        <!-- a party's unread rows, for the Inbox and its count -->
+        <index name="COMMEVTPTY_PTY_READ" unique="false"><index-field name="partyId"/><index-field name="readDate"/></index>
         <seed-data>
             <moqui.basic.StatusType description="Communication Event Party" statusTypeId="CommunicationEventParty"/>
             <moqui.basic.StatusItem description="Sent" sequenceNum="1" statusId="CepSent" statusTypeId="CommunicationEventParty"/>
@@ -1275,6 +1337,12 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CepAssigned" toStatusId="CepReferred" transitionName="Refer"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CepAssigned" toStatusId="CepClosed" transitionName="Close"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CepResolved" toStatusId="CepClosed" transitionName="Close"/>
+
+            <!-- the roles of an internal message's recipients, in priority order: a party named in To, in Cc (an @mention
+                too), and a party a mailbox post reached as a member or a participant of the thread -->
+            <mantle.party.RoleType description="Message To" roleTypeId="MessageTo"/>
+            <mantle.party.RoleType description="Message Cc" roleTypeId="MessageCc"/>
+            <mantle.party.RoleType description="Message Mailbox Delivery" roleTypeId="MessageMailbox"/>
         </seed-data>
     </entity>
     <entity entity-name="CommunicationEventProduct" package="mantle.party.communication" cache="never">

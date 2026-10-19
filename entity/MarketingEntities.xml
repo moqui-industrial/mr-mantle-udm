@@ -104,6 +104,12 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="verifyEmailSubject" type="text-long"/>
         <field name="verifyEmailWebSiteId" type="id"/>
         <field name="optOutScreen" type="text-medium"/>
+        <field name="postingEnumId" type="id"><description>Who may post to a mailbox: its members (empty is members), its
+            owners and moderators, or any user (a help mailbox, where a poster who is not a member sees only their own
+            threads)</description></field>
+        <field name="defaultDeliveryEnumId" type="id"><description>A new member's delivery of a mailbox's posts (empty
+            is the Inbox)</description></field>
+        <field name="archivedDate" type="date-time"><description>An archived list takes no posts or members</description></field>
         <relationship type="one" related="mantle.marketing.campaign.MarketingCampaign"/>
         <relationship type="one" title="ContactListType" related="moqui.basic.Enumeration">
             <key-map field-name="contactListTypeEnumId"/></relationship>
@@ -111,12 +117,29 @@ along with this software (see the LICENSE.md file). If not, see
             <key-map field-name="contactMechTypeEnumId"/></relationship>
         <relationship type="one" title="Owner" related="mantle.party.Party">
             <key-map field-name="ownerPartyId"/></relationship>
+        <relationship type="one" title="ContactListPosting" related="moqui.basic.Enumeration" short-alias="posting">
+            <key-map field-name="postingEnumId"/></relationship>
+        <relationship type="one" title="ContactListDelivery" related="moqui.basic.Enumeration" short-alias="defaultDelivery">
+            <key-map field-name="defaultDeliveryEnumId"/></relationship>
         <seed-data>
             <!-- Contact List Type -->
             <moqui.basic.EnumerationType description="Contact List Type" enumTypeId="ContactListType"/>
             <moqui.basic.Enumeration enumId="MARKETING" description="Marketing" enumTypeId="ContactListType"/>
             <moqui.basic.Enumeration enumId="NEWSLETTER" description="Newsletter" enumTypeId="ContactListType"/>
             <moqui.basic.Enumeration enumId="ANNOUNCEMENT" description="Announcement" enumTypeId="ContactListType"/>
+            <!-- a shared list or forum of internal messages: posts are CommunicationEvents with its contactListId -->
+            <moqui.basic.Enumeration enumId="MAILBOX" description="Mailbox" enumTypeId="ContactListType"/>
+
+            <!-- Contact List Posting -->
+            <moqui.basic.EnumerationType description="Contact List Posting" enumTypeId="ContactListPosting"/>
+            <moqui.basic.Enumeration enumId="ClpMembers" description="Members" sequenceNum="1" enumTypeId="ContactListPosting"/>
+            <moqui.basic.Enumeration enumId="ClpModerators" description="Owners and moderators" sequenceNum="2" enumTypeId="ContactListPosting"/>
+            <moqui.basic.Enumeration enumId="ClpAnyUser" description="Any user" sequenceNum="3" enumTypeId="ContactListPosting"/>
+
+            <!-- Contact List Delivery -->
+            <moqui.basic.EnumerationType description="Contact List Delivery" enumTypeId="ContactListDelivery"/>
+            <moqui.basic.Enumeration enumId="CldInbox" description="Inbox" sequenceNum="1" enumTypeId="ContactListDelivery"/>
+            <moqui.basic.Enumeration enumId="CldMailboxOnly" description="Mailbox only" sequenceNum="2" enumTypeId="ContactListDelivery"/>
         </seed-data>
     </entity>
     <entity entity-name="ContactListEmail" package="mantle.marketing.contact">
@@ -163,12 +186,22 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="statusId" type="id" enable-audit-log="true"/>
         <field name="preferredContactMechId" type="id"/>
         <field name="optInVerifyCode" type="text-short"/>
+        <field name="roleTypeId" type="id"><description>ListOwner or ListModerator; empty is a member</description></field>
+        <field name="deliveryEnumId" type="id"><description>How a mailbox's posts reach the member (ContactListDelivery);
+            empty is the list's default delivery</description></field>
         <relationship type="one" related="mantle.marketing.contact.ContactList"/>
         <relationship type="one" related="mantle.party.Party"/>
         <relationship type="one" title="ContactListParty" related="moqui.basic.StatusItem"/>
         <relationship type="one" title="Preferred" related="mantle.party.contact.ContactMech">
             <key-map field-name="preferredContactMechId"/></relationship>
+        <relationship type="one" related="mantle.party.RoleType" short-alias="role"/>
+        <relationship type="one" title="ContactListDelivery" related="moqui.basic.Enumeration" short-alias="delivery">
+            <key-map field-name="deliveryEnumId"/></relationship>
         <seed-data>
+            <!-- Contact List Party Role (empty is a member) -->
+            <mantle.party.RoleType description="List Owner" roleTypeId="ListOwner"/>
+            <mantle.party.RoleType description="List Moderator" roleTypeId="ListModerator"/>
+
             <!-- Contact List Party Status -->
             <moqui.basic.StatusType description="Contact List Party" statusTypeId="ContactListParty"/>
             <moqui.basic.StatusItem description="Pending Acceptance" sequenceNum="1" statusId="CLPT_PENDING" statusTypeId="ContactListParty"/>
@@ -193,7 +226,39 @@ along with this software (see the LICENSE.md file). If not, see
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_PENDING" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Subscription Accepted - Unsubscribed"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_IN_USE" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Subscription In Use - Unsubscribed"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_INVALID" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Subscription Invalid - Unsubscribed"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBS_PENDING" toStatusId="CLPT_UNSUBSCRIBED" transitionName="Confirm Unsubscribe"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBS_PENDING" toStatusId="CLPT_ACCEPTED" transitionName="Cancel Unsubscribe"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBSCRIBED" toStatusId="CLPT_ACCEPTED" transitionName="Subscribe Again"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="CLPT_UNSUBSCRIBED" toStatusId="CLPT_PENDING" transitionName="Subscribe Again - Pending"/>
         </seed-data>
+    </entity>
+    <entity entity-name="ContactListToken" package="mantle.marketing.contact" cache="never">
+        <description>The token of an unsubscribe link for a party on a contact list: the /u/&lt;token&gt; of the public
+            Unsubscribe page and of the List-Unsubscribe header's one-click POST (RFC 8058), usually one per message sent
+            (communicationEventId, messageId). The token is random (32 URL-safe characters, 192 bits) and is given only
+            when it is created; this keeps its hash (tokenHash), so reading the rows gives no working links. A token ends
+            at thruDate (revoked or expired); usedDate is its last use. mantle.party.ConsentServices create#UnsubscribeToken,
+            resolve#UnsubscribeToken, apply#UnsubscribePreferences and unsubscribe#ContactListParty.</description>
+        <field name="contactListTokenId" type="id" is-pk="true"/>
+        <field name="tokenHash" type="id-long"/>
+        <field name="contactListId" type="id"/>
+        <field name="partyId" type="id"/>
+        <field name="contactMechId" type="id"><description>The address the message went to</description></field>
+        <field name="communicationEventId" type="id"/>
+        <field name="messageId" type="text-medium"/>
+        <field name="purposeEnumId" type="id"><description>PartyConsentPurpose: PcpMarketingEmail, or PcpSms for a list
+            of phone numbers</description></field>
+        <field name="createdDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <field name="usedDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related="mantle.marketing.contact.ContactList" short-alias="contactList"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" related="mantle.party.contact.ContactMech" short-alias="contactMech"/>
+        <relationship type="one" related="mantle.party.communication.CommunicationEvent" short-alias="communicationEvent"/>
+        <relationship type="one" title="PartyConsentPurpose" related="moqui.basic.Enumeration" short-alias="purpose">
+            <key-map field-name="purposeEnumId"/></relationship>
+        <index name="CNTLSTTKN_HASH" unique="true"><index-field name="tokenHash"/></index>
+        <index name="CNTLSTTKN_PARTY"><index-field name="partyId"/></index>
     </entity>
 
     <!-- ========================================================= -->
