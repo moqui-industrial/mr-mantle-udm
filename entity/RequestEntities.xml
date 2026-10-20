@@ -268,6 +268,20 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="mantle.request.Request" short-alias="request"/>
         <relationship type="one" related="mantle.work.effort.WorkEffort" short-alias="workEffort"/>
     </entity>
+    <entity entity-name="RequestRecord" package="mantle.request" cache="never">
+        <description>A request on any record that has no join of its own, by the record's full entity name and the
+            value of its single primary key. The own joins stay: mantle.request.RequestWorkEffort (a work effort) and
+            mantle.request.WikiPageRequest (a wiki page). mantle.request.RequestServices.link#RequestRecord chooses.</description>
+        <field name="requestId" type="id" is-pk="true"/>
+        <field name="recordEntityName" type="text-medium" is-pk="true"/>
+        <field name="recordId" type="id" is-pk="true"/>
+        <field name="linkedByUserId" type="id"/>
+        <field name="linkedDate" type="date-time"/>
+        <relationship type="one" related="mantle.request.Request" short-alias="request"/>
+        <relationship type="one" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
+            <key-map field-name="linkedByUserId" related="userId"/></relationship>
+        <index name="REQUEST_REC_RECORD" unique="false"><index-field name="recordEntityName"/><index-field name="recordId"/></index>
+    </entity>
     <entity entity-name="WikiPageRequest" package="mantle.request" cache="never">
         <field name="wikiPageId" type="id" is-pk="true"/>
         <field name="requestId" type="id" is-pk="true"/>

@@ -29,6 +29,9 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="facilityName" type="text-medium"/>
         <field name="facilitySize" type="number-decimal"/>
         <field name="facilitySizeUomId" type="id"/>
+        <field name="bookable" type="text-indicator"><description>Y when this facility can be booked on a calendar (a meeting room). Type FcTpRoom alone does not make it bookable.</description></field>
+        <field name="capacity" type="number-decimal"><description>How many people it holds. Not FacilityLocation.capacity, which is a bin.</description></field>
+        <field name="capacityUomId" type="id"/>
         <field name="openedDate" type="date-time"/>
         <field name="closedDate" type="date-time"/>
         <field name="description" type="text-medium"/>
@@ -56,6 +59,8 @@ along with this software (see the LICENSE.md file). If not, see
             <key-map field-name="ownerPartyId"/></relationship>
         <relationship type="one" title="FacilitySize" related="moqui.basic.Uom" short-alias="sizeUom">
             <key-map field-name="facilitySizeUomId"/></relationship>
+        <relationship type="one" title="Capacity" related="moqui.basic.Uom" short-alias="capacityUom">
+            <key-map field-name="capacityUomId"/></relationship>
         <relationship type="one" related="moqui.basic.Geo" short-alias="geo"/>
         <relationship type="one" related="moqui.basic.GeoPoint" short-alias="geoPoint"/>
         <relationship type="one" title="County" related="moqui.basic.Geo" short-alias="countyGeo">
@@ -110,7 +115,7 @@ along with this software (see the LICENSE.md file). If not, see
         <master>
             <detail relationship="type"/><detail relationship="parent"/><detail relationship="status"/>
             <detail relationship="owner" use-master="basic"/>
-            <detail relationship="sizeUom"/><detail relationship="geo"/><detail relationship="geoPoint"/>
+            <detail relationship="sizeUom"/><detail relationship="capacityUom"/><detail relationship="geo"/><detail relationship="geoPoint"/>
 
             <detail relationship="certifications"/>
             <detail relationship="contactMechs">

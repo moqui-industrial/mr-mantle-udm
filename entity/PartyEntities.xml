@@ -1367,6 +1367,18 @@ along with this software (see the LICENSE.md file). If not, see
             <mantle.party.RoleType description="Message Mailbox Delivery" roleTypeId="MessageMailbox"/>
         </seed-data>
     </entity>
+    <entity entity-name="CommunicationEventPartyLabel" package="mantle.party.communication" cache="never">
+        <description>A label one party put on one internal message (CommunicationEvent). The label is an EmailLabel of that
+            party's Internal email account, so two people on the same message label it apart. A thread shows a label when
+            any of its messages has it for that party. Internal messages have no folders.</description>
+        <field name="communicationEventId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="emailLabelId" type="id" is-pk="true"/>
+        <relationship type="one" related="mantle.party.communication.CommunicationEvent" short-alias="communicationEvent"/>
+        <relationship type="one" related="mantle.party.Party" short-alias="party"/>
+        <relationship type="one" related="moqui.basic.email.EmailLabel" short-alias="label"/>
+        <index name="COMMEVTPTY_LBL" unique="false"><index-field name="partyId"/><index-field name="emailLabelId"/></index>
+    </entity>
     <entity entity-name="CommunicationEventProduct" package="mantle.party.communication" cache="never">
         <field name="productId" type="id" is-pk="true"/>
         <field name="communicationEventId" type="id" is-pk="true"/>
