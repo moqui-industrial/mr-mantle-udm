@@ -883,6 +883,72 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="mantle.work.effort.WorkEffort"/>
     </entity>
 
+    <!-- Git repositories of projects, and their commits, branches and tags on tasks (MR Moqui, no Java counterpart).
+        The services are mantle.work.GitServices; the linking conventions, as gitECA rules, Work.gitecas.xml in
+        mantle-usl. The repositories themselves are moqui.resource.GitRepository, hosted by the framework. -->
+    <entity entity-name="WorkEffortGitRepository" package="mantle.work.effort" cache="never">
+        <description>A git repository of a project. Commit messages, branch names and tag names in it that name a task
+            of the project are linked to the task, and the project's members may use the repository.</description>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="repositoryId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related="moqui.resource.GitRepository"/>
+        <index name="WORKEFF_GIT_REPO"><index-field name="repositoryId"/></index>
+    </entity>
+    <entity entity-name="WorkEffortGitCommit" package="mantle.work.effort" cache="never">
+        <description>A commit linked to a work effort, usually a task. The summary, author and date are copied from the
+            commit, so a list of them reads no git objects.</description>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="repositoryId" type="id" is-pk="true"/>
+        <field name="commitId" type="text-short" is-pk="true"/>
+        <field name="summary" type="text-medium"/>
+        <field name="authorName" type="text-medium"/>
+        <field name="authorEmail" type="text-medium"/>
+        <field name="commitDate" type="date-time"/>
+        <field name="refName" type="text-medium"><description>The branch or tag the commit came on</description></field>
+        <field name="linkSourceEnumId" type="id"/>
+        <field name="linkedByUserId" type="id"/>
+        <field name="linkedDate" type="date-time"/>
+        <relationship type="one" related="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related="moqui.resource.GitRepository"/>
+        <relationship type="one" title="WorkEffortGitLinkSource" related="moqui.basic.Enumeration" short-alias="linkSource">
+            <key-map field-name="linkSourceEnumId"/></relationship>
+        <relationship type="one" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
+            <key-map field-name="linkedByUserId" related="userId"/></relationship>
+        <index name="WORKEFF_GIT_COMMIT"><index-field name="repositoryId"/><index-field name="commitId"/></index>
+        <seed-data>
+            <moqui.basic.EnumerationType description="Work Effort Git Link Source" enumTypeId="WorkEffortGitLinkSource"/>
+            <moqui.basic.Enumeration description="Added" enumId="WglsExplicit" enumTypeId="WorkEffortGitLinkSource"/>
+            <moqui.basic.Enumeration description="Commit message" enumId="WglsMessage" enumTypeId="WorkEffortGitLinkSource"/>
+            <moqui.basic.Enumeration description="Task trailer" enumId="WglsTrailer" enumTypeId="WorkEffortGitLinkSource"/>
+            <moqui.basic.Enumeration description="Branch name" enumId="WglsBranchName" enumTypeId="WorkEffortGitLinkSource"/>
+            <moqui.basic.Enumeration description="Tag name" enumId="WglsTagName" enumTypeId="WorkEffortGitLinkSource"/>
+            <moqui.basic.Enumeration description="Tag message" enumId="WglsTagMessage" enumTypeId="WorkEffortGitLinkSource"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="WorkEffortGitRef" package="mantle.work.effort" cache="never">
+        <description>A branch or tag linked to a work effort: a task, or for a tag also a project or milestone. The
+            thruDate is set when the ref is deleted.</description>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="repositoryId" type="id" is-pk="true"/>
+        <field name="refName" type="text-medium" is-pk="true"><description>refs/heads/... or refs/tags/...</description></field>
+        <field name="refType" type="text-short"><description>branch or tag</description></field>
+        <field name="objectId" type="text-short"><description>The commit it named when linked</description></field>
+        <field name="linkSourceEnumId" type="id"/>
+        <field name="linkedByUserId" type="id"/>
+        <field name="linkedDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related="moqui.resource.GitRepository"/>
+        <relationship type="one" title="WorkEffortGitLinkSource" related="moqui.basic.Enumeration" short-alias="linkSource">
+            <key-map field-name="linkSourceEnumId"/></relationship>
+        <relationship type="one" title="LinkedBy" related="moqui.security.UserAccount" short-alias="linkedByUser">
+            <key-map field-name="linkedByUserId" related="userId"/></relationship>
+        <index name="WORKEFF_GIT_REF"><index-field name="repositoryId"/><index-field name="refName"/></index>
+    </entity>
+
     <!-- ========================================================= -->
     <!-- mantle.work.estimate -->
     <!-- ========================================================= -->
